@@ -1,9 +1,15 @@
 import pandas as pd
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import QDate
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
-from PyQt5.QtWidgets import QFileDialog, QTableView, QVBoxLayout, QDialog
+from PyQt5.QtWidgets import QFileDialog, QTableView, QVBoxLayout, QDialog, QCalendarWidget, QPushButton
 from PyQt5 import *
-from v2 import Ui_Dialog
+from v4 import Ui_Dialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QStackedWidget, QVBoxLayout, QWidget
+from PyQt5.QtCore import QUrl
+import os
+import folium
+from PyQt5.QtWebEngineWidgets import QWebEngineView
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
@@ -13,6 +19,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         self.stackedWidget.setCurrentIndex(0)
 
         self.initCsvTableView()
+
+        self.pushButton_10.clicked.connect(self.packageData)
+
+
+
 
     def initCsvTableView(self):
         # Assume Widget1 is a QWidget
@@ -41,6 +52,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         except Exception as e:
             print("Error reading file:", e)
 
+
+
     def click_index_0(self):
         self.stackedWidget.setCurrentIndex(0)
     def click_index_1(self):
@@ -59,4 +72,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         filename, _ = QFileDialog.getOpenFileName(self, "Open CSV File", "./", "CSV Files (*.csv)")
         if filename:
             self.displayCsvInTable(filename)
+
+
+    def packageData(self):
+        # 读取控件内容并封装成字典
+        data = {
+            'station_id': self.lineEdit.text(),
+            'pile_id': self.lineEdit_1.text(),
+            'fault_type': self.lineEdit_2.text(),
+            'model_id': self.lineEdit_3.text(),
+            'start_time': self.dateEdit.date().toString('yyyy-MM-dd'),
+            'end_time': self.dateEdit_2.date().toString('yyyy-MM-dd')
+        }
+        self.queryFaults(data)
+
+    def queryFaults(self, data):
+        # 在这里实现您的查询逻辑
+        # 例如，打印数据或发送到数据库
+        print(data)
+
+
+
 
