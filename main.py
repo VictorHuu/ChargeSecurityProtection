@@ -1,8 +1,11 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
+import os
+
+from PyQt5 import QtWidgets
 from mainwindow import MainWindow
 import sys
 
 if __name__ == "__main__":
+
     app = QtWidgets.QApplication(sys.argv)
     mainWindow = MainWindow()
     mainWindow.show()
