@@ -10,7 +10,7 @@ from v5 import Ui_Dialog
 import folium
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-#from PyQt5.QtChart import QChart, QChartView, QPieSeries
+from PyQt5.QtChart import QChart, QChartView, QPieSeries
 class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -34,9 +34,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         self.csvTableLayout = QVBoxLayout(self.tableWidget)  # Add to Widget1's layout
         self.csvTableLayout.addWidget(self.csvTableView)
         # 用于展示饼图（从pickle转化而来）
-        # self.pickleTableView = QChartView()
-        # self.pickleTableLayout = QVBoxLayout(self.tableWidget_5)  # Add to Widget1's layout
-        # self.pickleTableLayout.addWidget(self.pickleTableView)
+        self.pickleTableView = QChartView()
+        self.pickleTableLayout = QVBoxLayout(self.tableWidget_5)  # Add to Widget1's layout
+        self.pickleTableLayout.addWidget(self.pickleTableView)
     # 一个将df转化为model的工具类
     def dataframe_to_model(self, df):
         model = QStandardItemModel()
@@ -90,7 +90,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
             view.horizontalHeader().setStretchLastSection(True)
         except Exception as e:
             print("Error reading file:", e)
-    def displayCsvInTable(self, filename):
+    def displayCsvInTable(self, df):
         try:
             model = QStandardItemModel(df.shape[0], df.shape[1])
             model.setHorizontalHeaderLabels(df.columns)
@@ -125,7 +125,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         data = pd.read_pickle(cleaned_pickle)
         counts = data.groupby(['station_name']).size().reset_index(name='counts')
         #self.displayCsv(counts,self.pickleTableView)
-        #self.displayPieChart(counts,self.pickleTableView)
+        self.displayPieChart(counts,self.pickleTableView)
 
     def click_index_3(self):
         self.stackedWidget.setCurrentIndex(3)
@@ -147,8 +147,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         # 数据去重
         merged_df = merged_df.drop_duplicates()
         # 按时间和站名排序
-        merged_df['samptime'] = pd.to_datetime(merged_df['samptime'], unit='ms')
-        merged_df['fessamptime'] = pd.to_datetime(merged_df['fessamptime'], unit='ms')
+        #merged_df['samptime'] = pd.to_datetime(merged_df['samptime'], unit='ms')
+        merged_df.loc[:, 'samptime'] = pd.to_datetime(merged_df['samptime'], unit='ms')
+        #merged_df['fessamptime'] = pd.to_datetime(merged_df['fessamptime'], unit='ms')
+        merged_df.loc[:, 'fessamptime']=pd.to_datetime(merged_df['fessamptime'], unit='ms')
         merged_df = merged_df.sort_values(by=['station_name', 'stake_name', 'samptime'])
         merged_df = merged_df.reset_index(drop=True)
         return merged_df
@@ -215,7 +217,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
                     "resultsfeedback",
                     "fessamptime",
                     "dt"]
-                df = pd.read_csv(file_path, header=None, names=header_list)
+                df = pd.read_csv(file_path, header=None, names=header_list,low_memory=False)
                 df_list.append(df)
         merged_df = pd.concat(df_list, ignore_index=True)
         return merged_df
