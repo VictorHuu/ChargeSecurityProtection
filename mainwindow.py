@@ -8,8 +8,9 @@ from PyQt5.QtWidgets import QFileDialog, QTableView, QVBoxLayout, QDialog, QPush
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from v5 import Ui_Dialog
 import folium
-
-
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+#from PyQt5.QtChart import QChart, QChartView, QPieSeries
 class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -32,8 +33,46 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         self.csvTableView = QTableView()
         self.csvTableLayout = QVBoxLayout(self.tableWidget)  # Add to Widget1's layout
         self.csvTableLayout.addWidget(self.csvTableView)
-    def displayCsv(self, df):
+        # 用于展示饼图（从pickle转化而来）
+        # self.pickleTableView = QChartView()
+        # self.pickleTableLayout = QVBoxLayout(self.tableWidget_5)  # Add to Widget1's layout
+        # self.pickleTableLayout.addWidget(self.pickleTableView)
+    # 一个将df转化为model的工具类
+    def dataframe_to_model(self, df):
+        model = QStandardItemModel()
+
+        # Set horizontal header labels
+        model.setHorizontalHeaderLabels(df.columns)
+
+        # Populate data
+        for row_idx, row_data in df.iterrows():
+            items = [QStandardItem(str(field)) for field in row_data]
+            model.appendRow(items)
+
+        return model
+    # 用于展示饼图（Experimental）
+    def displayPieChart(self,df,chart_view=None):
+        model=self.dataframe_to_model(df)
+        series = QPieSeries()
+        # Read data from the model
+        for row in range(model.rowCount()):
+            category = model.item(row, 0).text()
+            value = float(model.item(row, 1).text())
+            series.append(category, value)
+
+        chart = QChart()
+        chart.addSeries(series)
+        chart.setTitle("Pie Chart")
+
+        #chart_view = QChartView(chart)
+        chart_view.setChart(chart)
+        chart_view.setRenderHint(QChartView.Antialiasing)
+
+        return chart_view
+    def displayCsv(self, df,view=None):
         try:
+            if view is None:
+                view = self.csvTableView
             # Use pandas to read the CSV file
             model = QStandardItemModel(df.shape[0], df.shape[1])
             model.setHorizontalHeaderLabels(df.columns)
@@ -45,10 +84,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
                     model.setItem(row.Index, col_index, item)
 
             # Set up the table view
-            self.csvTableView.setModel(model)
-            self.csvTableView.resizeColumnsToContents()
-            self.csvTableView.setAlternatingRowColors(True)
-            self.csvTableView.horizontalHeader().setStretchLastSection(True)
+            view.setModel(model)
+            view.resizeColumnsToContents()
+            view.setAlternatingRowColors(True)
+            view.horizontalHeader().setStretchLastSection(True)
         except Exception as e:
             print("Error reading file:", e)
     def displayCsvInTable(self, filename):
@@ -65,24 +104,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
             self.csvTableView.horizontalHeader().setStretchLastSection(True)
         except Exception as e:
             print("Error reading file:", e)
-
-    def displayCsvInTable(self, filename):
-        try:
-            df = pd.read_csv(filename)
-            model = QStandardItemModel(df.shape[0], df.shape[1])
-            model.setHorizontalHeaderLabels(df.columns)
-            for row in df.itertuples():
-                for col_index, value in enumerate(row[1:]):
-                    item = QStandardItem(str(value))
-                    model.setItem(row.Index, col_index, item)
-            self.csvTableView.setModel(model)
-            self.csvTableView.resizeColumnsToContents()
-            self.csvTableView.setAlternatingRowColors(True)
-            self.csvTableView.horizontalHeader().setStretchLastSection(True)
-        except Exception as e:
-            print("Error reading file:", e)
-
-
 
     def click_index_0(self):
         self.stackedWidget.setCurrentIndex(0)
@@ -92,6 +113,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
 
     def click_index_2(self):
         self.stackedWidget.setCurrentIndex(2)
+        print("Hello world!")
+        plt.rcParams['font.sans-serif'] = 'SimHei'  # 设置中文显示
+        plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
+
+        pd.set_option('display.max_columns', None)
+        pd.set_option('display.max_rows', 1000)
+        #File
+        cleaned_pickle,_ = QFileDialog.getOpenFileName(self, "Open Pickle File", "./", "Pickle Files (*.pickle)")
+        print("*"+cleaned_pickle+"*")
+        data = pd.read_pickle(cleaned_pickle)
+        counts = data.groupby(['station_name']).size().reset_index(name='counts')
+        #self.displayCsv(counts,self.pickleTableView)
+        #self.displayPieChart(counts,self.pickleTableView)
 
     def click_index_3(self):
         self.stackedWidget.setCurrentIndex(3)
@@ -103,8 +137,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         directory=QFileDialog.getExistingDirectory(self,"Select directory that contains CSV files")
         #filename, _ = QFileDialog.getOpenFileName(self, "Open CSV File", "./", "CSV Files (*.csv)")
         if directory:
-            mdf=self.merge_data(directory)
-            cdf=self.cleanse_data(mdf)
+            self.mdf=self.merge_data(directory)
+            cdf=self.cleanse_data(self.mdf)
             self.displayCsv(cdf)
     def cleanse_data(self,merged_df):
         # 数据偏移纠正
@@ -300,7 +334,7 @@ class MarkerDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("添加标注")
-
+        self.merged_df=pd.DataFrame()
         self.name_input = QLineEdit()
         self.description_input = QLineEdit()
         self.latitude_input = QLineEdit()
