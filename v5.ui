@@ -127,7 +127,7 @@ font: 14pt &quot;等线&quot;;
 </string>
      </property>
      <property name="text">
-      <string>点击添加数据</string>
+      <string>点击添加数据并进行处理</string>
      </property>
     </widget>
     <widget class="QTableWidget" name="tableWidget">
@@ -178,10 +178,10 @@ font: 14pt &quot;等线&quot;;
     <widget class="QWidget" name="widget_2_2" native="true">
      <property name="geometry">
       <rect>
-       <x>480</x>
+       <x>470</x>
        <y>50</y>
        <width>381</width>
-       <height>311</height>
+       <height>201</height>
       </rect>
      </property>
     </widget>
@@ -189,9 +189,19 @@ font: 14pt &quot;等线&quot;;
      <property name="geometry">
       <rect>
        <x>470</x>
-       <y>370</y>
+       <y>270</y>
        <width>381</width>
-       <height>311</height>
+       <height>221</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QWidget" name="widget_2_4" native="true">
+     <property name="geometry">
+      <rect>
+       <x>470</x>
+       <y>500</y>
+       <width>381</width>
+       <height>221</height>
       </rect>
      </property>
     </widget>
