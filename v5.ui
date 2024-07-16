@@ -46,7 +46,7 @@ font: 14pt &quot;等线&quot;;
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>2</number>
    </property>
    <widget class="QWidget" name="page_0">
     <widget class="QWidget" name="widget" native="true">
@@ -163,6 +163,36 @@ font: 14pt &quot;等线&quot;;
      </property>
      <property name="text">
       <string>计数分析</string>
+     </property>
+    </widget>
+    <widget class="QWidget" name="widget_2_1" native="true">
+     <property name="geometry">
+      <rect>
+       <x>70</x>
+       <y>370</y>
+       <width>381</width>
+       <height>311</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QWidget" name="widget_2_2" native="true">
+     <property name="geometry">
+      <rect>
+       <x>480</x>
+       <y>50</y>
+       <width>381</width>
+       <height>311</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QWidget" name="widget_2_3" native="true">
+     <property name="geometry">
+      <rect>
+       <x>470</x>
+       <y>370</y>
+       <width>381</width>
+       <height>311</height>
+      </rect>
      </property>
     </widget>
    </widget>
@@ -328,6 +358,36 @@ font: 14pt &quot;等线&quot;;
       <string>提交</string>
      </property>
     </widget>
+    <widget class="QWidget" name="widget_3_2" native="true">
+     <property name="geometry">
+      <rect>
+       <x>430</x>
+       <y>320</y>
+       <width>381</width>
+       <height>311</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QWidget" name="widget_3_1" native="true">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>320</y>
+       <width>381</width>
+       <height>311</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QWidget" name="widget_3_3" native="true">
+     <property name="geometry">
+      <rect>
+       <x>440</x>
+       <y>0</y>
+       <width>381</width>
+       <height>311</height>
+      </rect>
+     </property>
+    </widget>
    </widget>
    <widget class="QWidget" name="page_4">
     <widget class="QLineEdit" name="lineEdit_9">
@@ -489,6 +549,36 @@ font: 14pt &quot;等线&quot;;
      </property>
      <property name="text">
       <string>提交</string>
+     </property>
+    </widget>
+    <widget class="QWidget" name="widget_4_3" native="true">
+     <property name="geometry">
+      <rect>
+       <x>440</x>
+       <y>340</y>
+       <width>381</width>
+       <height>311</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QWidget" name="widget_4_1" native="true">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>340</y>
+       <width>381</width>
+       <height>311</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QWidget" name="widget_4_2" native="true">
+     <property name="geometry">
+      <rect>
+       <x>450</x>
+       <y>20</y>
+       <width>381</width>
+       <height>311</height>
+      </rect>
      </property>
     </widget>
    </widget>
