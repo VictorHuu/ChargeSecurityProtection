@@ -2,15 +2,17 @@ import sys
 import os
 import pandas as pd
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QDate, QUrl
-from PyQt5.QtGui import QStandardItem, QStandardItemModel
+from PyQt5.QtCore import QDate, QUrl, Qt, QRectF, QRect, QSize, QDateTime
+from PyQt5.QtGui import QStandardItem, QStandardItemModel, QBrush, QColor, QFont, QPen
 from PyQt5.QtWidgets import QFileDialog, QTableView, QVBoxLayout, QDialog, QPushButton, QLineEdit, QFormLayout
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from v5 import Ui_Dialog
 import folium
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from PyQt5.QtChart import QChart, QChartView, QPieSeries
+from PyQt5.QtChart import QChart, QChartView, QPieSeries, QPieSlice, QLineSeries, QDateTimeAxis, QValueAxis
+
+
 class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -35,8 +37,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         self.csvTableLayout.addWidget(self.csvTableView)
         # 用于展示饼图（从pickle转化而来）
         self.pickleTableView = QChartView()
-        self.pickleTableLayout = QVBoxLayout(self.tableWidget_5)  # Add to Widget1's layout
+        self.pickleTableLayout = QVBoxLayout(self.widget_2_1)  # Add to widget_2_1(1st Pie Chart)'s layout
         self.pickleTableLayout.addWidget(self.pickleTableView)
+        # Battery Pie Chart
+        self.pickle_battery_TableView = QChartView()
+        self.pickle_battery_TableLayout = QVBoxLayout(self.widget_2_2)  # Add to widget_2_2(2nd Pie Chart)'s layout
+        self.pickle_battery_TableLayout.addWidget(self.pickle_battery_TableView)
+        self.station_time_series_TableView = QChartView()
+        self.station_time_series_TableLayout = QVBoxLayout(self.widget_2_3)  # Add to widget_2_3(3rd Pie Chart)'s layout
+        self.station_time_series_TableLayout.addWidget(self.station_time_series_TableView)
+
+        self.plot_dict = {}
     # 一个将df转化为model的工具类
     def dataframe_to_model(self, df):
         model = QStandardItemModel()
@@ -50,8 +61,76 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
             model.appendRow(items)
 
         return model
+    def zoom_free_2_1(self):
+        # zoom out by 50%
+        current_size = self.widget_2_1.size()
+        if self.widget_2_1_zoom_out:
+            new_size = QSize(current_size.width() * 2, current_size.height() * 2)
+        else:
+            new_size = QSize(current_size.width() // 2, current_size.height() // 2)
+        self.widget_2_1.resize(new_size)
+        self.widget_2_1_zoom_out = not self.widget_2_1_zoom_out
+    def zoom_free_2_2(self):
+        # zoom out by 50%
+        current_size = self.widget_2_2.size()
+        if self.widget_2_2_zoom_out:
+            new_size = QSize(current_size.width() * 2, current_size.height() * 2)
+            self.widget_2_2.setGeometry(QRect(80, 60,new_size.width(),new_size.height()))
+        else:
+            new_size = QSize(current_size.width() // 2, current_size.height() // 2)
+            self.widget_2_2.setGeometry(QRect(430, 70, new_size.width(), new_size.height()))
+        self.widget_2_2.resize(new_size)
+        self.widget_2_2_zoom_out = not self.widget_2_2_zoom_out
+    def zoom_free_2_3(self):
+        # zoom out by 50%
+        current_size = self.widget_2_3.size()
+        if self.widget_2_3_zoom_out:
+            new_size = QSize(current_size.width() * 2, current_size.height() * 2)
+            self.widget_2_3.setGeometry(QRect(80, 60,new_size.width(),new_size.height()))
+        else:
+            new_size = QSize(current_size.width() // 2, current_size.height() // 2)
+            self.widget_2_3.setGeometry(QRect(430, 70, new_size.width(), new_size.height()))
+        self.widget_2_3.resize(new_size)
+        self.widget_2_3_zoom_out = not self.widget_2_3_zoom_out
+
+    def on_slice_clicked(self):
+        slice = self.sender()
+        if slice.isLabelVisible():
+            slice.setLabelVisible(False)
+            # zoom out by 50%
+            current_size = self.widget_2_3.size()
+            if self.widget_2_3_zoom_out:
+                pass
+            else:
+                new_size = QSize(current_size.width() // 2, current_size.height() // 2)
+                self.widget_2_3.setGeometry(QRect(30, 300, new_size.width(), new_size.height()))
+            self.widget_2_3.resize(new_size)
+            self.widget_2_3_zoom_out = True
+        else:
+            slice.setLabelVisible(True)
+            # zoom out by 50%
+            current_size = self.widget_2_3.size()
+            if self.widget_2_3_zoom_out:
+                new_size = QSize(current_size.width() * 2, current_size.height() * 2)
+                self.widget_2_3.setGeometry(QRect(30, 300, new_size.width(), new_size.height()))
+            else:
+                pass
+            self.widget_2_3.resize(new_size)
+            self.widget_2_3_zoom_out = False
+            # Cache  needed
+            if slice.label() in self.plot_dict:
+                hourly_work=self.plot_dict[slice.label()]
+            else:
+                hourly_work = self.choose_a_station(self.data, slice.label())
+                self.plot_dict[slice.label()] = hourly_work
+
+            self.displayPlot(hourly_work, self.station_time_series_TableView, heading=slice.label()+"'s Charging Stack's working status")
+        if slice.isExploded():
+            slice.setExploded(False)
+        else:
+            slice.setExploded(True)
     # 用于展示饼图（Experimental）
-    def displayPieChart(self,df,chart_view=None):
+    def displayPieChart(self,df,chart_view,heading,order):
         model=self.dataframe_to_model(df)
         series = QPieSeries()
         # Read data from the model
@@ -59,16 +138,52 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
             category = model.item(row, 0).text()
             value = float(model.item(row, 1).text())
             series.append(category, value)
-
+        for slice in series.slices():
+            slice.setLabelColor(QColor(Qt.red))
+            slice.setLabelFont(QFont('Arial', 25))
+            slice.hovered.connect(self.on_slice_clicked)
+            # connect a function with a parameter
+            if order == 1:
+                slice.clicked.connect(self.zoom_free_2_1)
+            elif order ==2:
+                slice.clicked.connect(self.zoom_free_2_2)
         chart = QChart()
         chart.addSeries(series)
-        chart.setTitle("Pie Chart")
+        chart.setTitleBrush(QBrush(Qt.black))
+        chart.setTitleFont(QFont('Impact', 500, QFont.Bold))
+        chart.setTitle(heading)
+        chart.setBackgroundPen(QPen(QColor('black'), 5))
+        # 800*600 is so small,I want a bigger one!
+        #chart.setPlotArea(QRectF(-100, 20, 600, 400))
+        # The text along the legends can wrap around
+        chart.legend().setBackgroundVisible(True)
+        chart.legend().setBorderColor(QColor(Qt.darkGreen))
+        chart.legend().setMaximumWidth(400)
+        chart.legend().setBrush(QBrush(QColor(128, 255, 255, 255)))
+        chart.legend().setLabelBrush(QBrush(Qt.red))
+        chart.legend().setAlignment(Qt.AlignRight)
+        chart.legend().setFont(QFont('Courier', 25))
+        chart.legend().setLabelColor(Qt.darkRed)
+        chart.setTheme(QChart.ChartThemeBrownSand)
+        ## User can drag
+        chart.setAcceptHoverEvents(True)
+        chart.setAcceptTouchEvents(True)
+        #Background color
+        #RGB style(blue)
+        # A dark green
+        chart.setBackgroundBrush(QBrush(QColor(0, 255, 0, 127)))
+        #The pie must be colorful ,not blue-like
+        # Legend must be aligned vertically
 
+        # set the size of pie chart not the size of the window
+        chart.setAnimationOptions(QChart.SeriesAnimations)
+        # Great! but besides the animation,the physical body size of it needs to be adjusted
         #chart_view = QChartView(chart)
         chart_view.setChart(chart)
-        chart_view.setRenderHint(QChartView.Antialiasing)
+        #chart_view.setRenderHint(QChartView.Antialiasing)
 
         return chart_view
+
     def displayCsv(self, df,view=None):
         try:
             if view is None:
@@ -124,9 +239,122 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         print("*"+cleaned_pickle+"*")
         data = pd.read_pickle(cleaned_pickle)
         counts = data.groupby(['station_name']).size().reset_index(name='counts')
+        counts_battery_name,counts_battery_size=self.battery_proportion(data)
+        # converts to a DataFrame
+        counts_battery = pd.DataFrame({'batterytype': counts_battery_name, 'counts': counts_battery_size})
         #self.displayCsv(counts,self.pickleTableView)
-        self.displayPieChart(counts,self.pickleTableView)
+        self.displayPieChart(counts,self.pickleTableView,"Count Statistics Pie Chart for Charging Stations",
+                             order=1)
+        self.displayPieChart(counts_battery, self.pickle_battery_TableView,heading="Battery Type Pie Chart",
+                             order=2)
+        self.data=data
+    def mousePressEvent(self, event):
+        #Check whether the pointer hovers over widget_2_3
+        if event.buttons() == Qt.LeftButton:
+            # zoom out by 50%
+            current_size = self.widget_2_3.size()
+            if self.widget_2_3_zoom_out:
+                new_size = QSize(current_size.width() * 2, current_size.height() * 2)
+            else:
+                new_size = QSize(current_size.width() // 2, current_size.height() // 2)
+            self.widget_2_3.resize(new_size)
+            self.widget_2_3_zoom_out = not self.widget_2_3_zoom_out
+            event.accept()
+        if event.buttons() == Qt.RightButton:
+            # zoom out by 50%
+            current_size = self.widget_2_4.size()
+            if self.widget_2_4_zoom_out:
+                new_size = QSize(current_size.width() * 2, current_size.height() * 2)
+            else:
+                new_size = QSize(current_size.width() // 2, current_size.height() // 2)
+            self.widget_2_4.resize(new_size)
+            self.widget_2_4_zoom_out = not self.widget_2_4_zoom_out
+            event.accept()
+    def displayPlot(self,series,view,heading):
+        # Series to DataFrame
+        df=pd.DataFrame(series)
+        # Draw a 2d plot
+        series = QLineSeries()
+        chart = QChart()
+        chart.setTitle(heading)
+        # Read data from DataFrame
+        for row in df.itertuples():
+            y = row.working
+            # Convert the Timestamp to number
+            #x = mdates.date2num(row.Index.strftime("%Y-%m-%d %H:%M:%S"),"yyyy-MM-dd HH:mm:ss")
+            x=QDateTime.fromString(row.Index.strftime("%Y-%m-%d %H:%M:%S"),"yyyy-MM-dd HH:mm:ss")
+            series.append(x.toMSecsSinceEpoch(), y)
+        chart.addSeries(series)
+        chart.setBackgroundPen(QPen(QColor("green")))
+        chart.setBackgroundVisible(True)
+        chart.setBackgroundBrush(QBrush(QColor(0, 255, 0, 127)))
+        axisX=QDateTimeAxis()
+        axisX.setFormat("dd-MM-yyyy hh:MM:ss")
+        axisX.setTitleText("Datetime")
+        chart.addAxis(axisX,Qt.AlignBottom)
+        series.attachAxis(axisX)
 
+        axisY = QValueAxis()
+        axisY.setLabelFormat("%d")
+        axisY.setTitleText("No. of Data Point /h")
+        chart.addAxis(axisY, Qt.AlignLeft)
+        series.attachAxis(axisY)
+
+        pen=QPen(QColor("blue"))
+        pen.setWidth(2)
+        series.setPen(pen)
+
+        chart.setTitle(heading)
+        view.setChart(chart)
+        return view
+    def choose_a_station(self,data,station_name):
+        filtered_df = data[(data['station_name'] == station_name) & (data['stake_name'].str.startswith("1"))]
+        # if data_clean dir doesn't exist,create it
+        if not os.path.exists("./data_clean"):
+            os.makedirs("./data_clean")
+        output_path = "./data_clean/filtered_df.pickle"
+        filtered_df.to_pickle(output_path)
+
+        filtered_df.set_index('samptime', inplace=True)
+
+        df = filtered_df.copy()
+        # 创建一个表示工作状态的虚拟列，值为1
+        df['working'] = 1
+
+        # 以每小时为单位对工作状态进行重采样，计算每小时的工作时长
+        hourly_work = df['working'].resample('h').sum()
+        return hourly_work
+    def battery_proportion(self,data):
+        # 电池类型与编号的映射
+        battery_types = {
+            1: '铅酸电池',
+            2: '镍氢电池',
+            3: '磷酸铁锂电池',
+            4: '锰酸锂电池',
+            5: '钴酸锂电池',
+            6: '三元材料电池',
+            7: '聚合物锂离子电池',
+            8: '钛酸锂电池',
+            99: '其它电池'
+        }
+
+        # 获取电池类型的唯一值
+        unique_battery_types = data['batterytype'].unique()
+
+        # 计算每种电池类型的计数
+        battery_counts = {bt: len(data[data['batterytype'] == bt]) for bt in unique_battery_types}
+
+        # 将电池类型编号转换为名称，并准备饼图的数据
+        battery_names = [battery_types.get(bt, '未知电池类型') for bt in battery_counts]
+        battery_sizes = list(battery_counts.values())
+        return battery_names,battery_sizes
+        # 绘制饼图
+        #plt.figure(figsize=(10, 8))  # 设置图形的大小
+        #plt.pie(battery_sizes, labels=battery_names, autopct='%1.1f%%', startangle=140)
+
+        #plt.title('电池类型分布')  # 添加标题
+        #plt.axis('equal')  # 确保饼图是圆形的
+        #plt.show()  # 显示图形
     def click_index_3(self):
         self.stackedWidget.setCurrentIndex(3)
 

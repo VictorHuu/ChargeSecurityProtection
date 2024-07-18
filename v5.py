@@ -79,17 +79,21 @@ class Ui_Dialog(object):
         self.label_24.setGeometry(QtCore.QRect(30, 20, 61, 16))
         self.label_24.setObjectName("label_24")
         self.widget_2_1 = QtWidgets.QWidget(self.page_2)
-        self.widget_2_1.setGeometry(QtCore.QRect(70, 370, 381, 311))
+        self.widget_2_1.setGeometry(QtCore.QRect(80,60, 381,231))
         self.widget_2_1.setObjectName("widget_2_1")
+        self.widget_2_1_zoom_out=True
         self.widget_2_2 = QtWidgets.QWidget(self.page_2)
-        self.widget_2_2.setGeometry(QtCore.QRect(470, 50, 381, 201))
+        self.widget_2_2.setGeometry(QtCore.QRect(430, 70, 381, 231))
         self.widget_2_2.setObjectName("widget_2_2")
+        self.widget_2_2_zoom_out = True
         self.widget_2_3 = QtWidgets.QWidget(self.page_2)
-        self.widget_2_3.setGeometry(QtCore.QRect(470, 270, 381, 221))
+        self.widget_2_3.setGeometry(QtCore.QRect(30, 300, 381, 231))
         self.widget_2_3.setObjectName("widget_2_3")
+        self.widget_2_3_zoom_out = True
         self.widget_2_4 = QtWidgets.QWidget(self.page_2)
-        self.widget_2_4.setGeometry(QtCore.QRect(470, 500, 381, 221))
+        self.widget_2_4.setGeometry(QtCore.QRect(430, 300, 381, 231))
         self.widget_2_4.setObjectName("widget_2_4")
+        self.widget_2_4_zoom_out = True
         self.stackedWidget.addWidget(self.page_2)
         self.page_3 = QtWidgets.QWidget()
         self.page_3.setObjectName("page_3")

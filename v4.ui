@@ -46,7 +46,7 @@ font: 14pt &quot;等线&quot;;
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>2</number>
    </property>
    <widget class="QWidget" name="page_0">
     <widget class="QWidget" name="widget" native="true">
@@ -101,8 +101,8 @@ font: 14pt &quot;等线&quot;;
       <rect>
        <x>70</x>
        <y>60</y>
-       <width>381</width>
-       <height>291</height>
+       <width>721</width>
+       <height>601</height>
       </rect>
      </property>
     </widget>
