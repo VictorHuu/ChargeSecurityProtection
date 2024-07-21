@@ -163,3 +163,7 @@ model_diagnostic/*
 offline_map.html
 .vscode
 data_clean/*
+!model_diagnostic/confusion_matrices
+!model_diagnostic/metrics_bars
+!model_diagnostic/RF_heatmap
+!model_diagnostic/xgb_results
