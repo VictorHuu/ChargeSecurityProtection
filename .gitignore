@@ -167,3 +167,17 @@ data_clean/*
 !model_diagnostic/metrics_bars
 !model_diagnostic/RF_heatmap
 !model_diagnostic/xgb_results
+model_diagnostic/confusion_matrices/*
+model_diagnostic/metrics_bars/*
+model_diagnostic/RF_heatmap/*
+model_diagnostic/xgb_results/*
+.idea
+model_warning/*
+!model_warning/data_engineered
+model_warning/data_engineered/*
+!model_warning/data_split
+model_warning/data_split/*
+!model_warning/*_results
+model_warning/*_results/*
+!model_warning/*_heatmap
+model_warning/*_heatmap/*
