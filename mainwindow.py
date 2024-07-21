@@ -5,17 +5,18 @@ import warnings
 import pandas as pd
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QDate, QUrl, Qt, QRectF, QRect, QSize, QDateTime
-from PyQt5.QtGui import QStandardItem, QStandardItemModel, QBrush, QColor, QFont, QPen
-from PyQt5.QtWidgets import QFileDialog, QTableView, QVBoxLayout, QDialog, QPushButton, QLineEdit, QFormLayout
+from PyQt5.QtGui import QStandardItem, QStandardItemModel, QBrush, QColor, QFont, QPen,QPainter
+from PyQt5.QtWidgets import QFileDialog, QTableView, QGraphicsScene, QGraphicsView, QGraphicsPixmapItem, QVBoxLayout, \
+    QDialog, QPushButton, QLineEdit, QFormLayout, QLabel
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from sklearn.ensemble import RandomForestClassifier
 
-from v6 import Ui_Dialog
+from v5 import Ui_Dialog
 import folium
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from PyQt5.QtChart import QChart, QChartView, QPieSeries, QPieSlice, QLineSeries, QDateTimeAxis, QValueAxis
-
+import holidays
 from sklearn.model_selection import GroupShuffleSplit
 import seaborn as sns
 from sklearn.model_selection import GroupShuffleSplit
@@ -24,11 +25,34 @@ from sklearn.multioutput import MultiOutputClassifier
 from xgboost import XGBClassifier
 from sklearn.metrics import classification_report, ConfusionMatrixDisplay, confusion_matrix
 import joblib
+import openpyxl
+from PyQt5.QtGui import QPixmap
+class ImageViewer(QDialog):
+    def __init__(self, pixmap, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Zoomed Image")
+        self.setGeometry(100, 100, pixmap.width(), pixmap.height())
 
+        label = QLabel(self)
+        label.setPixmap(pixmap)
+        layout = QVBoxLayout()
+        layout.addWidget(label)
+        self.setLayout(layout)
+class ClickablePixmapItem(QGraphicsPixmapItem):
+    def __init__(self, pixmap):
+        super().__init__(pixmap)
 
-class MainWidget(QtWidgets.QWidget, Ui_Dialog):
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.show_zoomed_image()
+
+    def show_zoomed_image(self):
+        # 创建一个新的窗口来显示放大的图片
+        dialog = ImageViewer(self.pixmap())
+        dialog.exec_()
+class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
     def __init__(self, parent=None):
-        super(MainWidget, self).__init__(parent)
+        super(MainWindow, self).__init__(parent)
         self.setupUi(self)
         self.stackedWidget.setCurrentIndex(0)
 
@@ -38,6 +62,9 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         # self.pushButton_7.clicked.connect(self.packageData)
         self.pushButton_8.clicked.connect(self.load_map_data)
         self.pushButton_9.clicked.connect(self.add_marker)
+
+        self.pushButton_10.clicked.connect(self.packageData)
+
 
 
 
@@ -56,7 +83,21 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         self.station_time_series_TableView = QChartView()
         self.station_time_series_TableLayout = QVBoxLayout(self.widget_2_3)  # Add to widget_2_3(3rd Pie Chart)'s layout
         self.station_time_series_TableLayout.addWidget(self.station_time_series_TableView)
-
+        # Seaborn window
+        self.scene = QGraphicsScene()
+        self.seabornView = QGraphicsView(self.scene)
+        self.seabornLayout = QVBoxLayout(self.widget_3_1)  # Add to widget_3_1(Seaborn Chart)'s layout
+        self.seabornLayout.addWidget(self.seabornView)
+        # Confusion Matrix
+        self.confusionMatrixscene = QGraphicsScene()
+        self.confusionMatrixView = QGraphicsView(self.confusionMatrixscene)
+        self.confusionMatrixLayout = QVBoxLayout(self.widget_3_3)  # Add to widget_3_3(Seaborn Chart)'s layout
+        self.confusionMatrixLayout.addWidget(self.confusionMatrixView)
+        # Metrics
+        self.Metricsscene = QGraphicsScene()
+        self.MetricsView = QGraphicsView(self.Metricsscene)
+        self.MetricsLayout = QVBoxLayout(self.widget_3_2)  # Add to widget_3_3(Seaborn Chart)'s layout
+        self.MetricsLayout.addWidget(self.MetricsView)
         self.plot_dict = {}
     # 一个将df转化为model的工具类
     def dataframe_to_model(self, df):
@@ -521,6 +562,16 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             self.widget_2_4.resize(new_size)
             self.widget_2_4_zoom_out = not self.widget_2_4_zoom_out
             event.accept()
+
+    def display_seaborn(self,station_name):
+        # 加载图表图片并显示在 QGraphicsView 中
+        self.display_image("model_diagnostic/RF_heatmap/"+station_name+"_fault_rate_heatmap.png",self.scene,self.seabornView)
+    def display_image(self,filename,scene,view):
+        # 加载图表图片并显示在 QGraphicsView 中
+        pixmap = QPixmap(filename)
+        pixmap_item = ClickablePixmapItem(pixmap)
+        scene.addItem(pixmap_item)
+        view.fitInView(pixmap_item, Qt.KeepAspectRatio)
     def displayPlot(self,series,view,heading):
         # Series to DataFrame
         df=pd.DataFrame(series)
@@ -809,7 +860,8 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
 
             # 保存热力图
             plt.savefig(f"./model_diagnostic/RF_heatmap/{station}_fault_rate_heatmap.png")
-            plt.show()
+            #plt.show()
+            self.display_seaborn(station)
     def test_diagnotics_model_result(self, category, model):
         # 加载测试数据集
         X_test = pd.read_csv("./model_diagnostic/X_test.csv")
@@ -835,8 +887,12 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             disp = ConfusionMatrixDisplay(confusion_matrix=cm)
             disp.plot(cmap=plt.cm.Blues, values_format='.0f')
             plt.title(f'Confusion Matrix for {col}')
-            plt.show()
-
+            # If the directory doesn't exist, create it
+            if not os.path.exists("./model_diagnostic/confusion_matrices"):
+                os.makedirs("./model_diagnostic/confusion_matrices")
+            plt.savefig(f"./model_diagnostic/confusion_matrices/{col}_confusion_matrix.png")
+            self.display_image(f"./model_diagnostic/confusion_matrices/{col}_confusion_matrix.png"
+                               ,view=self.confusionMatrixView,scene=self.confusionMatrixscene)
             # 绘制精确率、召回率和F1得分的条形图
             report_dict = classification_report(y_test[col], y_pred_test[:, i], output_dict=True)
             metrics_df = pd.DataFrame(report_dict).transpose()
@@ -848,7 +904,12 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             plt.xlabel('Classes')
             plt.ylabel('Scores')
             plt.ylim(0, 1)
-            plt.show()
+            plt.savefig(f"./model_diagnostic/metrics_bars/{col}_metrics_bars.png")
+            # If the directory doesn't exist, create it
+            if not os.path.exists("./model_diagnostic/metrics_bars"):
+                os.makedirs("./model_diagnostic/metrics_bars")
+            self.display_image(f"./model_diagnostic/metrics_bars/{col}_metrics_bars.png",
+                               view=self.MetricsView,scene=self.Metricsscene)
         self.test_model_effect(y_pred_test, X_test, category)
     def packageData(self):
         # 读取控件内容并封装成字典
@@ -903,9 +964,6 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
                 self.save_map_to_file()
             except Exception as e:
                 QtWidgets.QMessageBox.critical(self, "错误", f"无法加载文件: {e}")
-        self.display_map()
-        self.save_map_to_file()
-
     def violated_value_cleanse(self,data):
         ################异常值处理##############
         # 将 demandvoltage 为 0 的值替换为下一行的值
@@ -1040,7 +1098,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             print(data)
         return data
     def display_map(self):
-        offline_map_path = './tiles/{z}/{x}/{y}.png'
+        offline_map_path = 'E:/firstgold/mapdemo/tiles/hang/{z}/{x}/{y}.png'
         m = folium.Map(location=[30.2741, 120.1551], zoom_start=12, tiles=None)
         folium.TileLayer(
             tiles=offline_map_path,
@@ -1088,7 +1146,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             self.save_map_to_file()
 
     def save_map_to_file(self):
-        offline_map_path = './tiles/{z}/{x}/{y}.png'
+        offline_map_path = 'tiles/{z}/{x}/{y}.png'
         m = folium.Map(location=[30.2741, 120.1551], zoom_start=12, tiles=None)
         folium.TileLayer(
             tiles=offline_map_path,
@@ -1146,3 +1204,4 @@ class MarkerDialog(QDialog):
             self.name_input.text(), self.description_input.text(), self.latitude_input.text(),
             self.longitude_input.text(), self.rating_input.text()
         )
+
