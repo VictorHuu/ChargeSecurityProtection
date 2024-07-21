@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>719</width>
+    <height>629</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_9">
+   <item row="0" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,8,0">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_13">
+       <item>
+        <widget class="QPushButton" name="pushButton">
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color:rgb(38, 104, 191);
+color:rgb(255, 255, 255);
+font: 14pt &quot;等线&quot;;
+
+</string>
+         </property>
+         <property name="text">
+          <string>主页</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_2">
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color:rgb(38, 104, 191);
+color:rgb(255, 255, 255);
+font: 14pt &quot;等线&quot;;
+
+</string>
+         </property>
+         <property name="text">
+          <string>数据处理</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_4">
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color:rgb(38, 104, 191);
+color:rgb(255, 255, 255);
+font: 14pt &quot;等线&quot;;
+
+</string>
+         </property>
+         <property name="text">
+          <string>数据展示</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_5">
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color:rgb(38, 104, 191);
+color:rgb(255, 255, 255);
+font: 14pt &quot;等线&quot;;
+
+</string>
+         </property>
+         <property name="text">
+          <string>故障诊断</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_6">
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color:rgb(38, 104, 191);
+color:rgb(255, 255, 255);
+font: 14pt &quot;等线&quot;;
+
+</string>
+         </property>
+         <property name="text">
+          <string>故障预警</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QStackedWidget" name="stackedWidget">
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="page_0">
+        <layout class="QGridLayout" name="gridLayout_10">
+         <item row="0" column="0">
+          <layout class="QGridLayout" name="gridLayout_8" rowstretch="9" columnstretch="0">
+           <item row="0" column="0">
+            <layout class="QGridLayout" name="gridLayout_7" rowstretch="0,0">
+             <item row="1" column="0">
+              <widget class="QPushButton" name="pushButton_8">
+               <property name="layoutDirection">
+                <enum>Qt::LeftToRight</enum>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background-color:rgb(38, 104, 191);
+color:rgb(255, 255, 255);
+font: 14pt &quot;等线&quot;;
+
+</string>
+               </property>
+               <property name="text">
+                <string>加载充电站数据</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QPushButton" name="pushButton_9">
+               <property name="layoutDirection">
+                <enum>Qt::LeftToRight</enum>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background-color:rgb(38, 104, 191);
+color:rgb(255, 255, 255);
+font: 14pt &quot;等线&quot;;
+
+</string>
+               </property>
+               <property name="text">
+                <string>手动标记</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0" colspan="2">
+              <widget class="QWidget" name="widget" native="true"/>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="page_1">
+        <layout class="QGridLayout" name="gridLayout_11">
+         <item row="0" column="0">
+          <widget class="QPushButton" name="pushButton_3">
+           <property name="layoutDirection">
+            <enum>Qt::LeftToRight</enum>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color:rgb(38, 104, 191);
+color:rgb(255, 255, 255);
+font: 14pt &quot;等线&quot;;
+
+</string>
+           </property>
+           <property name="text">
+            <string>点击添加数据并进行处理</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QTableWidget" name="tableWidget"/>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="page_2">
+        <layout class="QGridLayout" name="gridLayout_13">
+         <item row="0" column="0">
+          <layout class="QGridLayout" name="gridLayout_12" rowstretch="1,1" columnstretch="1,1,1,1,1">
+           <item row="0" column="1">
+            <widget class="QWidget" name="widget_2_2" native="true"/>
+           </item>
+           <item row="0" column="2" colspan="2">
+            <widget class="QWidget" name="widget_2_1" native="true"/>
+           </item>
+           <item row="1" column="0" colspan="3">
+            <widget class="QWidget" name="widget_2_3" native="true"/>
+           </item>
+           <item row="1" column="3" colspan="2">
+            <widget class="QWidget" name="widget_2_4" native="true"/>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="page_3">
+        <layout class="QGridLayout" name="gridLayout_14" rowstretch="1,1" columnstretch="1,1">
+         <item row="0" column="0">
+          <layout class="QGridLayout" name="gridLayout_6">
+           <item row="0" column="0">
+            <layout class="QVBoxLayout" name="verticalLayout_11">
+             <item>
+              <widget class="QLabel" name="label_16">
+               <property name="text">
+                <string>充电站编号</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_17">
+               <property name="text">
+                <string>模型选择</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="1" column="1">
+            <widget class="QPushButton" name="pushButton_20">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background-color:rgb(38, 104, 191);
+color:rgb(255, 255, 255);
+font: 14pt &quot;等线&quot;;
+
+</string>
+             </property>
+             <property name="text">
+              <string>提交</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <layout class="QVBoxLayout" name="verticalLayout_12">
+             <item>
+              <widget class="QLineEdit" name="lineEdit_15"/>
+             </item>
+             <item>
+              <widget class="QComboBox" name="comboBox_6">
+               <item>
+                <property name="text">
+                 <string>XGBoost</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>RFforest</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+         <item row="0" column="1">
+          <widget class="QWidget" name="widget_3_3" native="true"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QWidget" name="widget_3_1" native="true"/>
+         </item>
+         <item row="1" column="1">
+          <widget class="QWidget" name="widget_3_2" native="true"/>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="page_4">
+        <layout class="QGridLayout" name="gridLayout_15" rowstretch="1,1" columnstretch="1,1">
+         <item row="0" column="0">
+          <layout class="QGridLayout" name="gridLayout">
+           <item row="0" column="0">
+            <layout class="QVBoxLayout" name="verticalLayout">
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>充电站编号</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_4">
+               <property name="text">
+                <string>模型选择</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_5">
+               <property name="text">
+                <string>预警时间</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="1" column="1">
+            <widget class="QPushButton" name="pushButton_11">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background-color:rgb(38, 104, 191);
+color:rgb(255, 255, 255);
+font: 14pt &quot;等线&quot;;
+
+</string>
+             </property>
+             <property name="text">
+              <string>提交</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <widget class="QLineEdit" name="lineEdit_5"/>
+             </item>
+             <item>
+              <widget class="QComboBox" name="comboBox">
+               <item>
+                <property name="text">
+                 <string>XGBoost</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>RFforest</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="lineEdit_9"/>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+         <item row="0" column="1">
+          <widget class="QWidget" name="widget_4_2" native="true"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QWidget" name="widget_4_1" native="true"/>
+         </item>
+         <item row="1" column="1">
+          <widget class="QWidget" name="widget_4_3" native="true"/>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>pushButton_2</sender>
+   <signal>clicked()</signal>
+   <receiver>Dialog</receiver>
+   <slot>click_index_1()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>127</x>
+     <y>134</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>3</x>
+     <y>142</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_5</sender>
+   <signal>clicked()</signal>
+   <receiver>Dialog</receiver>
+   <slot>click_index_3()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>91</x>
+     <y>270</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>6</x>
+     <y>263</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_6</sender>
+   <signal>clicked()</signal>
+   <receiver>Dialog</receiver>
+   <slot>click_index_4()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>48</x>
+     <y>326</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>3</x>
+     <y>318</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Dialog</receiver>
+   <slot>click_index_0()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>85</x>
+     <y>78</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>90</x>
+     <y>32</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_4</sender>
+   <signal>clicked()</signal>
+   <receiver>Dialog</receiver>
+   <slot>click_index_2()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>74</x>
+     <y>210</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>207</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_3</sender>
+   <signal>clicked()</signal>
+   <receiver>Dialog</receiver>
+   <slot>addcsv()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>461</x>
+     <y>36</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1019</x>
+     <y>45</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>click_index_0()</slot>
+  <slot>click_index_1()</slot>
+  <slot>click_index_2()</slot>
+  <slot>click_index_3()</slot>
+  <slot>click_index_4()</slot>
+  <slot>addcsv()</slot>
+ </slots>
+</ui>
