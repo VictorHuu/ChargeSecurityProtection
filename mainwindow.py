@@ -13,7 +13,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from lightgbm import LGBMRegressor
 
-from v5 import Ui_Dialog
+from v6 import Ui_Dialog
 import folium
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -28,7 +28,7 @@ from xgboost import XGBClassifier, XGBRegressor
 from sklearn.metrics import classification_report, ConfusionMatrixDisplay, confusion_matrix, mean_squared_error, \
     r2_score
 import joblib
-import openpyxl
+
 from PyQt5.QtGui import QPixmap
 class ImageViewer(QDialog):
     def __init__(self, pixmap, parent=None):
@@ -53,20 +53,19 @@ class ClickablePixmapItem(QGraphicsPixmapItem):
         # 创建一个新的窗口来显示放大的图片
         dialog = ImageViewer(self.pixmap())
         dialog.exec_()
-class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
+class MainWidget(QtWidgets.QWidget, Ui_Dialog):
     def __init__(self, parent=None):
-        super(MainWindow, self).__init__(parent)
+        super(MainWidget, self).__init__(parent)
         self.setupUi(self)
         self.stackedWidget.setCurrentIndex(0)
 
         self.initCsvTableView()
         self.initMapView()
 
-        # self.pushButton_7.clicked.connect(self.packageData)
         self.pushButton_8.clicked.connect(self.load_map_data)
         self.pushButton_9.clicked.connect(self.add_marker)
 
-        self.pushButton_10.clicked.connect(self.packageData)
+        self.pushButton_20.clicked.connect(self.packageData)
         self.pushButton_11.clicked.connect(self.alert_func)
 
     def alert_func(self):
@@ -1007,6 +1006,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
                 self.save_map_to_file()
             except Exception as e:
                 QtWidgets.QMessageBox.critical(self, "错误", f"无法加载文件: {e}")
+        self.display_map()
+        self.save_map_to_file()
     def violated_value_cleanse(self,data):
         ################异常值处理##############
         # 将 demandvoltage 为 0 的值替换为下一行的值
@@ -1836,4 +1837,3 @@ class MarkerDialog(QDialog):
             self.name_input.text(), self.description_input.text(), self.latitude_input.text(),
             self.longitude_input.text(), self.rating_input.text()
         )
-
