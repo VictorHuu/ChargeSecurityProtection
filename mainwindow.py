@@ -142,6 +142,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         else:
             slice.setExploded(True)
     def train_diagnotics_model(self,picklefile,category,startdate,enddate,model,station_name,stake_name):
+        if model=='':
+            model='XGBoost'
         pdata=self.label_bofore_predict(pickle_file=picklefile,category=category,startdate=startdate,
                                         enddate=enddate,station_name=station_name,stake_name=stake_name)
         cdata=self.violated_value_cleanse(data=pdata)
@@ -188,7 +190,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
 
         # 输出分类报告并格式化为小数点后4位
         for i, col in enumerate(y_data.columns):
-            if col != category:
+            if col != category and col != 'all':
                 continue
             print(f"Classification report for {col}:")
             report = classification_report(y_val[col], y_pred[:, i], digits=4)
@@ -251,7 +253,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
 
         # 输出分类报告并格式化为小数点后4位
         for i, col in enumerate(y_data.columns):
-            if col != category:
+            if col != category and col != 'all':
                 continue
             print(f"Classification report for {col}:")
             report = classification_report(y_val[col], y_pred[:, i], digits=4)
@@ -287,9 +289,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         data = pd.read_pickle("./model_diagnostic/data_engineered_1.pickle")
 
         # 指定故障标签列
-        fault_labels = [
-            category
-        ]
+        global fault_labels
+        if category == 'all':
+            fault_labels = [
+                'voltage_fault_1', 'voltage_fault_2', 'voltage_fault_3',
+                'current_fault_1', 'current_fault_2',
+                'temperature_fault_1', 'temperature_fault_2'
+            ]
+        else:
+            fault_labels = [
+                category
+            ]
 
         # 将数据集分为特征和标签
         X = data.drop(fault_labels, axis=1)
@@ -695,7 +705,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
 
     def test_model_effect(self, y_pred_test, X_test, category):
         # 假设故障列的顺序是：voltage_fault_1, voltage_fault_2, voltage_fault_3, current_fault_1, current_fault_2, temperature_fault_1, temperature_fault_2
-        fault_columns = [category]
+        global fault_columns
+        if category == 'all':
+            fault_columns = [
+                'voltage_fault_1', 'voltage_fault_2', 'voltage_fault_3',
+                'current_fault_1', 'current_fault_2',
+                'temperature_fault_1', 'temperature_fault_2'
+            ]
+        else:
+            fault_columns = [category]
 
         # 确保列数匹配
         assert y_pred_test.shape[1] == len(fault_columns), "预测结果的列数与故障列数不匹配。"
@@ -715,8 +733,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
             print(merged_df)
 
         # 分组统计
-        grouped_sum = merged_df.groupby(['station_name', 'stake_name'])[
-            [category]].sum()
+        global grouped_sum
+        if category == 'all':
+            grouped_sum = merged_df.groupby(['station_name', 'stake_name'])[
+                ['voltage_fault_1', 'voltage_fault_2', 'voltage_fault_3',
+                    'current_fault_1', 'current_fault_2',
+                    'temperature_fault_1', 'temperature_fault_2']].sum()
+        else:
+            grouped_sum = merged_df.groupby(['station_name', 'stake_name'])[
+                [category]].sum()
 
         grouped_sum.to_excel("./model_diagnostic/xgb_results/xgb_results_fault_num.xlsx")
 
@@ -851,8 +876,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
             print(data)
         assert data['fault_type'] in ['voltage_fault_1', 'voltage_fault_2', 'voltage_fault_3',
                                       'current_fault_1', 'current_fault_2',
-                                      'temperature_fault_1', 'temperature_fault_2','']
-        assert data['model_id'] in ['XGBoost','RFforest']
+                                      'temperature_fault_1', 'temperature_fault_2','all','']
+        if data['fault_type'] == '':
+            data['fault_type'] = 'all'
+        assert data['model_id'] in ['XGBoost','RFforest','']
         file_dialog = QFileDialog()
         file_path, _ = file_dialog.getOpenFileName(self, "选择充电站数据文件", "", "Pickle Files (*.pickle)")
         if __debug__:
@@ -896,33 +923,33 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         return data
     def overfill_data(self,data,category):
         # 充电桩输出电压过压
-        if category == 'voltage_fault_1':
+        if category == 'voltage_fault_1' or category == 'all':
             condition1 = data['outputvoltage'] > data['demandvoltage']
             data.loc[condition1, 'voltage_fault_1'] = 1
-        elif category == 'voltage_fault_2':
+        elif category == 'voltage_fault_2' or category == 'all':
             # 动力电池充电电压过压
             condition2 = data['bmsvoltage'] > data['maxbmsvoltage']
             data.loc[condition2, 'voltage_fault_2'] = 1
-        elif category == 'voltage_fault_3':
+        elif category == 'voltage_fault_3' or category == 'all':
             # 动力电池单体电池充电电压过压
             condition3 = data['maximumbatteryvoltage'] > data['maxmonomervoltage']
             data.loc[condition3, 'voltage_fault_3'] = 1
-        elif category == 'current_fault_1':
+        elif category == 'current_fault_1' or category == 'all':
             # 充电桩输出电流过流
             condition4 = (data['outputcurrent'] > data['maxcurrent']) | (data['outputcurrent'] > data['demandcurrent'])
             data.loc[condition4, 'current_fault_1'] = 1
-        elif category == 'current_fault_2':
+        elif category == 'current_fault_2' or category == 'all':
             # 动力电池充电电流过流
             condition5 = data['bmscurrent'] > data['maxcurrent']
             data.loc[condition5, 'current_fault_2'] = 1
-        elif category == 'temperature_fault_1':
+        elif category == 'temperature_fault_1' or category == 'all':
             # 充电桩枪温度过温
             condition6 = (data['guntemperature1'] > data['maxtemperature']) | (
                         data['guntemperature2'] > data['maxtemperature']) | (
                                  data['guntemperature3'] > data['maxtemperature']) | (
                                  data['guntemperature4'] > data['maxtemperature'])
             data.loc[condition6, 'temperature_fault_1'] = 1
-        elif category == 'temperature_fault_2':
+        elif category == 'temperature_fault_2' or category == 'all':
             # 动力电池单体电池包过温
             condition7 = data['maximumbatterytemperature'] > data['maxtemperature']
             data.loc[condition7, 'temperature_fault_2'] = 1
@@ -931,7 +958,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
             print(data)
         pd.set_option('future.no_silent_downcasting', True)
         # 将None值替换为0
-        data[category] = data[category].replace({None: 0})
+        if category == 'all':
+            for category_ in ['voltage_fault_1', 'voltage_fault_2', 'current_fault_1',
+                             'temperature_fault_1', 'voltage_fault_3', 'current_fault_2', 'temperature_fault_2']:
+                data[category_] = data[category_].replace({None: 0})
+        else:
+            data[category] = data[category].replace({None: 0})
 
         data.to_pickle("./model_diagnostic/data_labeled_1.pickle")
         return data
@@ -943,7 +975,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
 
         # 3. 分组统计
         # 这次我们只按充电站名和充电枪名分组
-        grouped = data.groupby(['station_name', 'stake_name'])[[category]].sum()
+        global grouped
+        if category == 'all':
+            grouped = data.groupby(['station_name', 'stake_name'])[
+                ['voltage_fault_1', 'voltage_fault_2', 'current_fault_1',
+                 'temperature_fault_1', 'voltage_fault_3', 'current_fault_2', 'temperature_fault_2']].sum()
+        else:
+            grouped = data.groupby(['station_name', 'stake_name'])[[category]].sum()
 
         # 4. 数据重塑
         # 将统计结果转换为宽格式
@@ -954,10 +992,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         pd.set_option('display.max_rows', 200)  # 默认是50
     def save_grouped_defect(self,data,category):
         ###统计各类故障的数量
-
+        global grouped
         # 3. 分组统计
-        grouped = data.groupby(['station_name', 'stake_name', 'batch'])[
-            [category]].sum()
+        if category == 'all':
+            grouped = data.groupby(['station_name', 'stake_name', 'batch'])[
+                ['voltage_fault_1', 'voltage_fault_2', 'current_fault_1',
+                 'temperature_fault_1', 'voltage_fault_3', 'current_fault_2', 'temperature_fault_2']].sum()
+        else:
+            grouped = data.groupby(['station_name', 'stake_name', 'batch'])[
+                [category]].sum()
 
         # 4. 数据重塑
         # 将统计结果转换为宽格式
@@ -974,7 +1017,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         # 添加七列值，并将七列中的所有值填充为空值
         special_column_names = [category]
         s_col_num=1
-        if category == None or category == '':
+        if category == 'all':
             special_column_names = ['voltage_fault_1', 'voltage_fault_2', 'current_fault_1',
     'temperature_fault_1', 'voltage_fault_3', 'current_fault_2', 'temperature_fault_2']
             s_col_num=7
@@ -987,8 +1030,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         # Compare between timestamp!
         data = data[(data['samptime'] >= startdate) & (data['samptime'] <= enddate)]
         # Select the spefic station and stake
-        #& (data['stake_name'] == stake_name)
-        data = data[(data['station_name'] == station_name)]
+        #
+        if stake_name == 'all' or stake_name == '':
+            data = data[(data['station_name'] == station_name)]
+        else:
+            data = data[(data['station_name'] == station_name) & (data['stake_name'] == stake_name)]
         if __debug__:
             print(data)
         return data
