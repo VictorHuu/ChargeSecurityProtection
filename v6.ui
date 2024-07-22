@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>719</width>
-    <height>629</height>
+    <width>1027</width>
+    <height>726</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -108,7 +108,7 @@ font: 14pt &quot;等线&quot;;
      <item>
       <widget class="QStackedWidget" name="stackedWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>3</number>
        </property>
        <widget class="QWidget" name="page_0">
         <layout class="QGridLayout" name="gridLayout_10">
@@ -187,17 +187,17 @@ font: 14pt &quot;等线&quot;;
         <layout class="QGridLayout" name="gridLayout_13">
          <item row="0" column="0">
           <layout class="QGridLayout" name="gridLayout_12" rowstretch="1,1" columnstretch="1,1,1,1,1">
-           <item row="0" column="1">
-            <widget class="QWidget" name="widget_2_2" native="true"/>
-           </item>
-           <item row="0" column="2" colspan="2">
-            <widget class="QWidget" name="widget_2_1" native="true"/>
-           </item>
            <item row="1" column="0" colspan="3">
             <widget class="QWidget" name="widget_2_3" native="true"/>
            </item>
            <item row="1" column="3" colspan="2">
             <widget class="QWidget" name="widget_2_4" native="true"/>
+           </item>
+           <item row="0" column="3" colspan="2">
+            <widget class="QWidget" name="widget_2_2" native="true"/>
+           </item>
+           <item row="0" column="0" colspan="3">
+            <widget class="QWidget" name="widget_2_1" native="true"/>
            </item>
           </layout>
          </item>
@@ -217,9 +217,37 @@ font: 14pt &quot;等线&quot;;
               </widget>
              </item>
              <item>
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>充电桩编号</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_3">
+               <property name="text">
+                <string>故障类型</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QLabel" name="label_17">
                <property name="text">
                 <string>模型选择</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_6">
+               <property name="text">
+                <string>开始时间</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_7">
+               <property name="text">
+                <string>结束时间</string>
                </property>
               </widget>
              </item>
@@ -245,7 +273,13 @@ font: 14pt &quot;等线&quot;;
            <item row="0" column="1">
             <layout class="QVBoxLayout" name="verticalLayout_12">
              <item>
-              <widget class="QLineEdit" name="lineEdit_15"/>
+              <widget class="QLineEdit" name="lineEdit_4"/>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="lineEdit"/>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="lineEdit_2"/>
              </item>
              <item>
               <widget class="QComboBox" name="comboBox_6">
@@ -259,6 +293,83 @@ font: 14pt &quot;等线&quot;;
                  <string>RFforest</string>
                 </property>
                </item>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDateEdit" name="dateEdit">
+               <property name="dateTime">
+                <datetime>
+                 <hour>0</hour>
+                 <minute>0</minute>
+                 <second>0</second>
+                 <year>2023</year>
+                 <month>9</month>
+                 <day>1</day>
+                </datetime>
+               </property>
+               <property name="maximumDateTime">
+                <datetime>
+                 <hour>23</hour>
+                 <minute>59</minute>
+                 <second>59</second>
+                 <year>2025</year>
+                 <month>12</month>
+                 <day>31</day>
+                </datetime>
+               </property>
+               <property name="minimumDateTime">
+                <datetime>
+                 <hour>0</hour>
+                 <minute>0</minute>
+                 <second>0</second>
+                 <year>2023</year>
+                 <month>1</month>
+                 <day>1</day>
+                </datetime>
+               </property>
+               <property name="currentSection">
+                <enum>QDateTimeEdit::YearSection</enum>
+               </property>
+               <property name="calendarPopup">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDateEdit" name="dateEdit_2">
+               <property name="dateTime">
+                <datetime>
+                 <hour>0</hour>
+                 <minute>0</minute>
+                 <second>0</second>
+                 <year>2023</year>
+                 <month>10</month>
+                 <day>1</day>
+                </datetime>
+               </property>
+               <property name="maximumDateTime">
+                <datetime>
+                 <hour>23</hour>
+                 <minute>59</minute>
+                 <second>59</second>
+                 <year>2025</year>
+                 <month>12</month>
+                 <day>31</day>
+                </datetime>
+               </property>
+               <property name="minimumDateTime">
+                <datetime>
+                 <hour>0</hour>
+                 <minute>0</minute>
+                 <second>0</second>
+                 <year>2023</year>
+                 <month>1</month>
+                 <day>1</day>
+                </datetime>
+               </property>
+               <property name="calendarPopup">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
             </layout>

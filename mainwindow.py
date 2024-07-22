@@ -1,3 +1,4 @@
+import shutil
 import sys
 import os
 import warnings
@@ -70,36 +71,39 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
 
     def alert_func(self):
         data = {
-            'station_id': self.lineEdit_9.text(),
-            'pile_id': self.lineEdit_11.text(),
-            'fault_type': self.lineEdit_10.text(),
-            'model_id': self.lineEdit_12.text(),
-            'start_time': self.dateEdit_5.date().toString('yyyy-MM-dd'),
-            'end_time': self.dateEdit_6.date().toString('yyyy-MM-dd')
+            'station_id': self.comboBox_4.currentText(),
+            #'pile_id': self.lineEdit_11.text(),
+            #'fault_type': self.lineEdit_10.text(),
+            'model_id': self.comboBox.currentText(),
+            'pred_time':self.spinEdit.value()
+            #'start_time': self.dateEdit_5.date().toString('yyyy-MM-dd'),
+            #'end_time': self.dateEdit_6.date().toString('yyyy-MM-dd')
         }
         if __debug__:
             print("Alert Function's data's prepared:")
             print('Station_id is' + data['station_id'])
-            print('Pile id is' + data['pile_id'])
-            print('Fault type is' + data['fault_type'])
+            #print('Pile id is' + data['pile_id'])
+            #print('Fault type is' + data['fault_type'])
             print('Model id is' + data['model_id'])
-            print('Start time is' + data['start_time'])
-            print('End time is' + data['end_time'])
-        assert data['fault_type'] in ['voltage_fault_1', 'voltage_fault_2', 'voltage_fault_3',
-                                      'current_fault_1', 'current_fault_2',
-                                      'temperature_fault_1', 'temperature_fault_2', 'all', '']
-        if data['fault_type'] == '':
-            data['fault_type']='all'
+            print('Prediction time is' + str(data['pred_time']))
+            #print('Start time is' + data['start_time'])
+            #print('End time is' + data['end_time'])
+        self.progress.setValue(5)
         assert data['model_id'] in ['LGBM','XGBoost','RFforest','']
         if data['model_id'] == '':
             data['model_id']='XGBoost'
         file_dialog = QFileDialog()
         file_path, _ = file_dialog.getOpenFileName(self, "选择充电站数据文件", "", "Pickle Files (*.pickle)")
+        self.progress.setValue(15)
         if __debug__:
             print("File path is" + file_path)
-        fdata=self.alert_labeling(file_path,data['fault_type'],data['start_time'],data['end_time'])
-        self.alert_groupby(fdata,data['fault_type'])
-        self.example(data['fault_type'],data['station_id'],data['model_id'])
+        if file_path == '':
+            self.progress.setValue(0)
+            return None
+        fdata=self.alert_labeling(file_path,'all')
+        self.alert_groupby(fdata,'all')
+        self.example('all',data['station_id'],data['model_id'],my_lead_time=data['pred_time'])
+        self.progress.setValue(0)
     def initCsvTableView(self):
         self.csvTableView = QTableView()
         self.csvTableLayout = QVBoxLayout(self.tableWidget)  # Add to Widget1's layout
@@ -192,6 +196,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             slice.setLabelVisible(False)
             # zoom out by 50%
             current_size = self.widget_2_3.size()
+            new_size = current_size
             if self.widget_2_3_zoom_out:
                 pass
             else:
@@ -203,6 +208,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             slice.setLabelVisible(True)
             # zoom out by 50%
             current_size = self.widget_2_3.size()
+            new_size = current_size
             if self.widget_2_3_zoom_out:
                 new_size = QSize(current_size.width() * 2, current_size.height() * 2)
                 self.widget_2_3.setGeometry(QRect(30, 300, new_size.width(), new_size.height()))
@@ -227,6 +233,8 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             model='XGBoost'
         pdata=self.label_bofore_predict(pickle_file=picklefile,category=category,startdate=startdate,
                                         enddate=enddate,station_name=station_name,stake_name=stake_name)
+        if pdata.shape[0] == 0:
+            return None
         cdata=self.violated_value_cleanse(data=pdata)
         odata=self.overfill_data(data=cdata,category=category)
         gdata=self.save_grouped_defect(data=odata,category=category)
@@ -288,7 +296,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
                 for c in range(cm.shape[1]):
                     plt.text(c, r, format(cm[r, c], '.0f'), ha='center', va='center', color='red')
 
-            plt.show()
+            
 
             # 绘制精确率、召回率和F1得分的条形图
             report_dict = classification_report(y_val[col], y_pred[:, i], output_dict=True)
@@ -299,7 +307,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             plt.xlabel('Classes')
             plt.ylabel('Scores')
             plt.ylim(0, 1)
-            plt.show()
+            
 
         import joblib
 
@@ -351,7 +359,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
                 for c in range(cm.shape[1]):
                     plt.text(c, r, format(cm[r, c], '.0f'), ha='center', va='center', color='red')
 
-            plt.show()
+            
 
             # 绘制精确率、召回率和F1得分的条形图
             report_dict = classification_report(y_val[col], y_pred[:, i], output_dict=True)
@@ -362,7 +370,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             plt.xlabel('Classes')
             plt.ylabel('Scores')
             plt.ylim(0, 1)
-            plt.show()
+            
         # 假设 model 是你训练好的 MultiOutputClassifier(XGBClassifier) 模型
         joblib.dump(model, './model_diagnostic/multioutput_xgb_model.pkl')
     def split_the_dataset(self,category):
@@ -569,19 +577,22 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         pd.set_option('display.max_columns', None)
         pd.set_option('display.max_rows', 1000)
         #File
-        cleaned_pickle,_ = QFileDialog.getOpenFileName(self, "Open Pickle File", "./", "Pickle Files (*.pickle)")
-        print("*"+cleaned_pickle+"*")
-        data = pd.read_pickle(cleaned_pickle)
-        counts = data.groupby(['station_name']).size().reset_index(name='counts')
-        counts_battery_name,counts_battery_size=self.battery_proportion(data)
-        # converts to a DataFrame
-        counts_battery = pd.DataFrame({'batterytype': counts_battery_name, 'counts': counts_battery_size})
-        #self.displayCsv(counts,self.pickleTableView)
-        self.displayPieChart(counts,self.pickleTableView,"Count Statistics Pie Chart for Charging Stations",
+        try:
+            cleaned_pickle,_ = QFileDialog.getOpenFileName(self, "Open Pickle File", "./", "Pickle Files (*.pickle)")
+            print("*"+cleaned_pickle+"*")
+            data = pd.read_pickle(cleaned_pickle)
+            counts = data.groupby(['station_name']).size().reset_index(name='counts')
+            counts_battery_name,counts_battery_size=self.battery_proportion(data)
+            # converts to a DataFrame
+            counts_battery = pd.DataFrame({'batterytype': counts_battery_name, 'counts': counts_battery_size})
+            #self.displayCsv(counts,self.pickleTableView)
+            self.displayPieChart(counts,self.pickleTableView,"Count Statistics Pie Chart for Charging Stations",
                              order=1)
-        self.displayPieChart(counts_battery, self.pickle_battery_TableView,heading="Battery Type Pie Chart",
+            self.displayPieChart(counts_battery, self.pickle_battery_TableView,heading="Battery Type Pie Chart",
                              order=2)
-        self.data=data
+            self.data=data
+        except FileNotFoundError as e:
+            print(e)
     def mousePressEvent(self, event):
         #Check whether the pointer hovers over widget_2_3
         if event.buttons() == Qt.LeftButton:
@@ -698,7 +709,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
 
         #plt.title('电池类型分布')  # 添加标题
         #plt.axis('equal')  # 确保饼图是圆形的
-        #plt.show()  # 显示图形
+        #  # 显示图形
     def click_index_3(self):
         self.stackedWidget.setCurrentIndex(3)
 
@@ -902,7 +913,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
 
             # 保存热力图
             plt.savefig(f"./model_diagnostic/RF_heatmap/{station}_fault_rate_heatmap.png")
-            #plt.show()
+            #
             self.display_seaborn(station)
     def test_diagnotics_model_result(self, category, model):
         # 加载测试数据集
@@ -956,10 +967,10 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
     def packageData(self):
         # 读取控件内容并封装成字典
         data = {
-            'station_id': self.lineEdit_4.text(),
+            'station_id': self.comboBox_2.currentText(),
             'pile_id': self.lineEdit.text(),
-            'fault_type': self.lineEdit_2.text(),
-            'model_id': self.lineEdit_3.text(),
+            'fault_type': self.comboBox_3.currentText(),
+            'model_id': self.comboBox_6.currentText(),
             'start_time': self.dateEdit.date().toString('yyyy-MM-dd'),
             'end_time': self.dateEdit_2.date().toString('yyyy-MM-dd')
         }
@@ -985,6 +996,8 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         file_path, _ = file_dialog.getOpenFileName(self, "选择充电站数据文件", "", "Pickle Files (*.pickle)")
         if __debug__:
             print('The file path of the pickle file is'+file_path)
+        if file_path == '':
+            return
         self.train_diagnotics_model(picklefile=file_path,category=data['fault_type'],
                                     startdate=data['start_time'],enddate=data['end_time'],model=data['model_id'],
                                     station_name=data['station_id'],stake_name=data['pile_id'])
@@ -1171,7 +1184,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         m.save('offline_map.html')
         self.map_view.setUrl(QUrl.fromLocalFile(os.path.abspath('offline_map.html')))
     #region alert functions
-    def alert_labeling(self,pickle_filename,category,startdate,enddate):
+    def alert_labeling(self,pickle_filename,category,startdate='',enddate=''):
         pd.set_option('display.max_rows', 100)  # 默认是50
         pd.set_option('display.max_columns', 50)  # 默认是根据窗口大小变化
 
@@ -1210,6 +1223,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         # 将 batterytype 为 0 的值替换为下一行的值
         data['batterytype'] = data['batterytype'].replace(0, method='bfill')
         #endregion
+        self.progress.setValue(5)
         #region mark the violations
         # 充电桩输出电压过压
         if category == 'voltage_fault_1' or category == 'all':
@@ -1243,6 +1257,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             condition7 = data['maximumbatterytemperature'] > data['maxtemperature']
             data.loc[condition7, 'temperature_fault_2'] = 1
         #endregion
+        self.progress.setValue(7)
         #region 将None值替换为0
         if category=='all':
             for fault in ['voltage_fault_1', 'voltage_fault_2', 'current_fault_1',
@@ -1255,6 +1270,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             os.makedirs("./model_warning")
         data.to_pickle("./model_warning/data_labeled_1.pickle")
         #endregion
+        self.progress.setValue(8)
         return data
     def alert_groupby(self,data,category):
         #region 3. 分组统计
@@ -1267,6 +1283,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             grouped = data.groupby(['station_name', 'stake_name', 'batch'])[
                 [category]].sum()
         #endregion
+        self.progress.setValue(10)
         #region 4. 数据重塑
         # 将统计结果转换为宽格式
         wide_data = grouped.unstack(level=-1)
@@ -1277,6 +1294,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         plt.rcParams['font.sans-serif'] = ['STHeiti']  # 指定默认字体
         plt.rcParams['axes.unicode_minus'] = False  # 解决负号'-'显示为方块的问题
         #endregion
+        self.progress.setValue(12)
         # 3. 分组统计
         # 这次我们只按充电站名和充电枪名分组
         if category == 'all':
@@ -1293,6 +1311,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         grouped.to_excel("./model_warning/grouped_lables2.xlsx")
 
         pd.set_option('display.max_rows', 200)  # 默认是50
+        self.progress.setValue(15)
         return grouped
 
     def feature_engineering(self,data_file, pre_h,category):
@@ -1381,15 +1400,19 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         rename_shifted_columns(df, fault_columns, pre_h)
 
         # Save engineered data to pickle file
+        # Remove the previous pickle files
+        if os.path.exists("./model_warning/data_engineered"):
+            for file in os.listdir("./model_warning/data_engineered"):
+                os.remove(os.path.join("./model_warning/data_engineered", file))
         output_file = f"./model_warning/data_engineered/data_engineered_{pre_h}h.pickle"
         if not os.path.exists("./model_warning/data_engineered"):
             os.makedirs("./model_warning/data_engineered")
         df.to_pickle(output_file)
 
         return output_file
-    def example(self,category,station_name,model):
+    def example(self,category,station_name,model,my_lead_time=24):
         data_file = "./model_warning/data_labeled_1.pickle"
-        lead_times = [6, 12, 24, 36, 48, 72]
+        lead_times = [my_lead_time]
 
         for lead_time in lead_times:
             output_file = self.feature_engineering(data_file, lead_time,category)
@@ -1400,8 +1423,8 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             os.makedirs(data_folder)
         # 调用函数进行处理和保存
         self.split_and_save_data(data_folder,category)
-        lead_times = [12, 24, 36, 48, 72]
-
+        lead_times = [my_lead_time]
+        self.progress.setValue(17)
         for lead_time in lead_times:
             X_train_path = f"./model_warning/data_split/X_train_{lead_time}h.csv"
             y_train_path = f"./model_warning/data_split/y_train_{lead_time}h.csv"
@@ -1418,11 +1441,11 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
                 output_model_path = f'./model_warning/multioutput_lgbm_model_{lead_time}h.pkl'
                 self.train_and_evaluate_model_lgbm(X_train_path, y_train_path, output_model_path,category)
                 model_type = "lgbm"
-        lead_times = [12, 24, 36, 48, 72]
+        lead_times = [my_lead_time]
 
         for lead_time in lead_times:
             self.evaluate_model(model_type, lead_time,category,very_station_name=station_name)
-
+        self.progress.setValue(100)
     def evaluate_model(self,model_type, lead_time,category,very_station_name):
         # 构建输出文件夹路径
         results_folder = f"./model_warning/{model_type}_results"
@@ -1574,8 +1597,6 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
 
         # 输出回归评估指标
         for i, col in enumerate(y_data.columns):
-            if col != category:
-                continue
             print(f"Regression metrics for {col}:")
             mse = mean_squared_error(y_val[col], y_pred[:, i])
             rmse = np.sqrt(mse)
@@ -1631,8 +1652,6 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
 
         # 输出回归评估指标
         for i, col in enumerate(y_data.columns):
-            if col != category:
-                continue
             print(f"Regression metrics for {col}:")
             mse = mean_squared_error(y_val[col], y_pred[:, i])
             rmse = np.sqrt(mse)
@@ -1648,7 +1667,12 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             plt.xlabel('Actual Values')
             plt.ylabel('Predicted Values')
             plt.title(f'Actual vs Predicted for {col}')
-            plt.show()
+            if not os.path.exists("./model_warning/avp_series"):
+                os.makedirs("./model_warning/avp_series")
+            avp_filename=f"./model_warning/avp_series/avp_{col}.png"
+            plt.savefig(avp_filename)
+            self.display_image(avp_filename,scene=self.ActualPredictedScene,view
+                               =self.ActualPredictedView)
 
         # 保存模型
         joblib.dump(model, output_model_path)
@@ -1669,20 +1693,18 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         # 优化后的XGBRegressor和MultiOutputRegressor
         model = MultiOutputRegressor(
             XGBRegressor(n_estimators=50, max_depth=10, random_state=42, n_jobs=-1, objective='reg:squarederror'))
-
+        self.progress.setValue(75)
         # 训练模型
         model.fit(X_train, y_train)
-
+        self.progress.setValue(80)
         # 预测
         y_pred = model.predict(X_val)
 
         # 确保预测值在 0-1 范围内
         y_pred = np.clip(y_pred, 0, 1)
-
+        self.progress.setValue(85)
         # 输出回归评估指标
         for i, col in enumerate(y_data.columns):
-            if col != category:
-                continue
             print(f"Regression metrics for {col}:")
             mse = mean_squared_error(y_val[col], y_pred[:, i])
             rmse = np.sqrt(mse)
@@ -1698,11 +1720,17 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             plt.xlabel('Actual Values')
             plt.ylabel('Predicted Values')
             plt.title(f'Actual vs Predicted for {col}')
-            plt.show()
-
+            self.progress.setValue(90)
+            if not os.path.exists("./model_warning/avp_series"):
+                os.makedirs("./model_warning/avp_series")
+            avp_filename=f"./model_warning/avp_series/avp_{col}.png"
+            plt.savefig(avp_filename)
+            self.display_image(avp_filename,scene=self.ActualPredictedScene,view
+                               =self.ActualPredictedView)
         # 保存模型
         joblib.dump(model, output_model_path)
         print(f"Model saved to {output_model_path}")
+        self.progress.setValue(95)
     def split_and_save_data(self,folder_path,category):
         # 获取指定文件夹下所有以"data_engineered"开头且以".pickle"结尾的文件
         files = [f for f in os.listdir(folder_path) if f.startswith("data_engineered") and f.endswith(".pickle")]
