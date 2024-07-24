@@ -10,7 +10,7 @@ PyQt5==5.15.10
 PyQt5-Qt5==5.15.2
 PyQt5-sip==12.13.0
 PyQt5-stubs==5.15.6.0
-PyQtChart==5.15.6
+PyQtChart==5.15.7
 PyQtChart-Qt5==5.15.2
 PyQtWebEngine==5.15.6
 PyQtWebEngine-Qt5==5.15.2
