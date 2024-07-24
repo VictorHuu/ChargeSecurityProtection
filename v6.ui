@@ -15,7 +15,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout_9">
    <item row="0" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,8,0">
+    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,8">
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_13">
        <item>
@@ -108,52 +108,31 @@ font: 14pt &quot;等线&quot;;
      <item>
       <widget class="QStackedWidget" name="stackedWidget">
        <property name="currentIndex">
-        <number>3</number>
+        <number>4</number>
        </property>
        <widget class="QWidget" name="page_0">
-        <layout class="QGridLayout" name="gridLayout_10">
+        <layout class="QGridLayout" name="gridLayout_3">
          <item row="0" column="0">
-          <layout class="QGridLayout" name="gridLayout_8" rowstretch="9" columnstretch="0">
+          <layout class="QGridLayout" name="gridLayout_2">
+           <item row="1" column="0">
+            <widget class="QPushButton" name="pushButton_8">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background-color:rgb(0, 26, 65);
+color:rgb(255, 255, 255);
+font: 14pt &quot;等线&quot;;
+
+</string>
+             </property>
+             <property name="text">
+              <string>加载充电站数据</string>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="0">
-            <layout class="QGridLayout" name="gridLayout_7" rowstretch="0,0">
-             <item row="1" column="0">
-              <widget class="QPushButton" name="pushButton_8">
-               <property name="layoutDirection">
-                <enum>Qt::LeftToRight</enum>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">background-color:rgb(38, 104, 191);
-color:rgb(255, 255, 255);
-font: 14pt &quot;等线&quot;;
-
-</string>
-               </property>
-               <property name="text">
-                <string>加载充电站数据</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QPushButton" name="pushButton_9">
-               <property name="layoutDirection">
-                <enum>Qt::LeftToRight</enum>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">background-color:rgb(38, 104, 191);
-color:rgb(255, 255, 255);
-font: 14pt &quot;等线&quot;;
-
-</string>
-               </property>
-               <property name="text">
-                <string>手动标记</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0" colspan="2">
-              <widget class="QWidget" name="widget" native="true"/>
-             </item>
-            </layout>
+            <widget class="QWidget" name="widget" native="true"/>
            </item>
           </layout>
          </item>
@@ -167,7 +146,7 @@ font: 14pt &quot;等线&quot;;
             <enum>Qt::LeftToRight</enum>
            </property>
            <property name="styleSheet">
-            <string notr="true">background-color:rgb(38, 104, 191);
+            <string notr="true">background-color:rgb(0, 26, 65);
 color:rgb(255, 255, 255);
 font: 14pt &quot;等线&quot;;
 
@@ -259,7 +238,7 @@ font: 14pt &quot;等线&quot;;
               <enum>Qt::LeftToRight</enum>
              </property>
              <property name="styleSheet">
-              <string notr="true">background-color:rgb(38, 104, 191);
+              <string notr="true">background-color:rgb(0, 26, 65);
 color:rgb(255, 255, 255);
 font: 14pt &quot;等线&quot;;
 
@@ -422,7 +401,7 @@ font: 14pt &quot;等线&quot;;
               <enum>Qt::LeftToRight</enum>
              </property>
              <property name="styleSheet">
-              <string notr="true">background-color:rgb(38, 104, 191);
+              <string notr="true">background-color:rgb(0, 26, 65);
 color:rgb(255, 255, 255);
 font: 14pt &quot;等线&quot;;
 
@@ -471,19 +450,6 @@ font: 14pt &quot;等线&quot;;
         </layout>
        </widget>
       </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
      </item>
     </layout>
    </item>

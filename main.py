@@ -6,9 +6,9 @@ from mainwindow import MainWidget  # Import the MainWidget class from your modif
 class AppFrame(QFrame):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('Main Window Frame')
+        self.setWindowTitle('多网融合数据驱动的电动汽车充电安全防护软件')
         self.setGeometry(100, 100, 800, 600)
-
+        self.setStyleSheet("QStackedWidget { background-color: rgb(210,228,236); }")
         # Initialize MainWidget
         self.main_widget = MainWidget()
 
