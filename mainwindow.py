@@ -1495,7 +1495,35 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
                 model_type = "lgbm"
             self.evaluate_model(model_type, lead_time,step,very_station_name=station_name)
 
-    def evaluate_model(self,model_type, lead_time,step,very_station_name):
+    import pandas as pd
+    import os
+    import joblib
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    import warnings
+
+    import pandas as pd
+    import os
+    import joblib
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    import warnings
+
+    import pandas as pd
+    import os
+    import joblib
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    import warnings
+
+    import pandas as pd
+    import os
+    import joblib
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    import warnings
+
+    def evaluate_model(self, model_type, lead_time, step, very_station_name):
         # 构建输出文件夹路径
         results_folder = f"./model_warning/{model_type}_results"
         heatmap_folder = f"./model_warning/{model_type}_heatmap"
@@ -1524,7 +1552,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
 
         # 假设故障列的顺序是：voltage_fault_1, voltage_fault_2, voltage_fault_3, current_fault_1, current_fault_2, temperature_fault_1, temperature_fault_2
         fault_columns = ['voltage_fault_1', 'voltage_fault_2', 'voltage_fault_3', 'current_fault_1', 'current_fault_2',
-                            'temperature_fault_1', 'temperature_fault_2']
+                         'temperature_fault_1', 'temperature_fault_2']
 
         # 确保列数匹配
         assert y_pred_test.shape[1] == len(fault_columns), "预测结果的列数与故障列数不匹配。"
@@ -1541,9 +1569,9 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
 
         # 分组统计
         grouped_sum = merged_df.groupby(['station_name', 'stake_name'])[
-                ['voltage_fault_1', 'voltage_fault_2', 'voltage_fault_3',
-                'current_fault_1', 'current_fault_2',
-                'temperature_fault_1', 'temperature_fault_2']].sum()
+            ['voltage_fault_1', 'voltage_fault_2', 'voltage_fault_3',
+             'current_fault_1', 'current_fault_2',
+             'temperature_fault_1', 'temperature_fault_2']].sum()
         grouped_sum.to_excel(f"{results_folder}/{model_type}_results_fault_num_{lead_time}h.xlsx")
 
         # 计算每个桩的总样本数
@@ -1565,7 +1593,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         stations = fault_rate.index.get_level_values('station_name').unique()
 
         for station in stations:
-            if station!=very_station_name:
+            if station != very_station_name:
                 continue
             station_fault_rate = fault_rate.loc[station]
 
@@ -1584,33 +1612,71 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             # 保存热力图
             heatmap_filename = f"{heatmap_folder}/{model_type}_{lead_time}h_{station}_fault_rate_heatmap.png"
             plt.savefig(heatmap_filename)
-            self.display_image(heatmap_filename,scene=self.HeatMapscene,view=self.HeatMapView)
+            self.display_image(heatmap_filename, scene=self.HeatMapscene, view=self.HeatMapView)
+
         # 根据条件转换数字为比例
         def determine_risk_level(fault_count, fault_rate_value):
             if fault_count <= 0:
-                return '无风险'
+                return '无风险', 9
             elif fault_count > 10:
                 if fault_rate_value <= 0.3:
-                    return '低风险'
+                    return '低风险', 8
                 elif 0.3 < fault_rate_value <= 0.6:
-                    return '中风险'
+                    return '中风险', 7
                 else:
-                    return '高风险'
+                    return '高风险', 6
             else:
-                return '无风险'
+                return '无风险', 9
 
         # 创建风险等级表
         risk_df = pd.DataFrame(index=fault_rate.index, columns=fault_rate.columns)
+        risk_ratings = {}
 
         for (station, stake), row in grouped_sum.iterrows():
             for fault_type in fault_columns:
                 fault_count = row[fault_type]
                 fault_rate_value = fault_rate.loc[(station, stake), fault_type]
-                risk_level = determine_risk_level(fault_count, fault_rate_value)
+                risk_level, risk_rating = determine_risk_level(fault_count, fault_rate_value)
                 risk_df.loc[(station, stake), fault_type] = risk_level
+                risk_ratings[(station, stake)] = risk_rating
 
         # 保存风险等级表
         risk_df.to_excel(f"{results_folder}/{model_type}_results_风险等级表_{lead_time}h.xlsx")
+
+        # 加载充电站基本信息
+        station_info = {
+            "name": [
+                "杭新景高速建德服务区充电站（衢州方向）",
+                "浙江省杭州市临安区岗阳充电站",
+                "浙江省杭州市富阳区行政服务中心充电站",
+                "浙江省杭州市建德市白沙充电站",
+                "浙江省杭州市拱墅区中大银泰充电站",
+                "浙江省杭州市淳安县千岛湖镇鼓山充电站",
+                "浙江省杭州市淳安县客运西站公交充电站",
+                "浙江省杭州市钱塘区大江东新湾小学充电站"
+            ],
+            "description": ["充电站"] * 8,
+            "latitude": [29.4011, 30.2344, 30.0492, 29.4741, 30.3180, 29.6035, 29.6070, 30.2824],
+            "longitude": [119.5255, 119.7256, 119.9605, 119.2769, 120.1631, 118.9615, 119.0203, 120.3562],
+            "rating": [9] * 8  # 初始化为最高评分
+        }
+
+        station_info_df = pd.DataFrame(station_info)
+
+        # 合并描述信息和计算评分
+        for i, row in station_info_df.iterrows():
+            station_name = row['name']
+            if station_name in risk_df.index.get_level_values('station_name'):
+                station_risks = risk_df.loc[station_name].apply(lambda x: ', '.join(x.dropna().unique()), axis=1)
+                description_text = f"充电站: {station_risks.to_dict()}"
+                station_info_df.at[i, 'description'] = description_text
+                station_ratings = [risk_ratings[(station_name, stake)] for stake in risk_df.loc[station_name].index]
+                station_info_df.at[i, 'rating'] = min(station_ratings)
+
+        # 保存新的CSV文件
+        csv_file_path = f"{results_folder}/{model_type}_charging_stations_with_risk.csv"
+        station_info_df.to_csv(csv_file_path, index=False, encoding='utf-8-sig')
+        print(f"CSV file saved at {csv_file_path}")
 
     def train_and_evaluate_model_lgbm(self,X_train_path, y_train_path, output_model_path,category):
         # 读取训练数据集
