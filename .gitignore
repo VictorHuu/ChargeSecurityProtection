@@ -5,7 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+*.patch
 # Distribution / packaging
 .Python
 build/
@@ -181,3 +181,6 @@ model_warning/data_split/*
 model_warning/*_results/*
 !model_warning/*_heatmap
 model_warning/*_heatmap/*
+*.patch
+data_clean/*.pickle
+!data_clean

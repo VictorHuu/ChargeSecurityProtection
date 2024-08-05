@@ -1,6 +1,8 @@
 import sys
 import os
+import time
 import warnings
+import threading
 
 import numpy as np
 import pandas as pd
@@ -179,29 +181,29 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         if slice.isLabelVisible():
             slice.setLabelVisible(False)
             # zoom out by 50%
-            global new_size
-            current_size = self.widget_2_3.size()
-            new_size = current_size
-            if self.widget_2_3_zoom_out:
-                pass
-            else:
-                new_size = QSize(current_size.width() // 2, current_size.height() // 2)
-                self.widget_2_3.setGeometry(QRect(30, 300, new_size.width(), new_size.height()))
-            self.widget_2_3.resize(new_size)
-            self.widget_2_3_zoom_out = True
+            # global new_size
+            # current_size = self.widget_2_3.size()
+            # new_size = current_size
+            # if self.widget_2_3_zoom_out:
+            #     pass
+            # else:
+            #     new_size = QSize(current_size.width() // 2, current_size.height() // 2)
+            #     self.widget_2_3.setGeometry(QRect(30, 300, new_size.width(), new_size.height()))
+            # self.widget_2_3.resize(new_size)
+            # self.widget_2_3_zoom_out = True
         else:
             slice.setLabelVisible(True)
-            global new_size_2
-            # zoom out by 50%
-            current_size = self.widget_2_3.size()
-            new_size_2 = current_size
-            if self.widget_2_3_zoom_out:
-                new_size_2 = QSize(current_size.width() * 2, current_size.height() * 2)
-                self.widget_2_3.setGeometry(QRect(30, 300, new_size_2.width(), new_size_2.height()))
-            else:
-                pass
-            self.widget_2_3.resize(new_size_2)
-            self.widget_2_3_zoom_out = False
+            # global new_size_2
+            # # zoom out by 50%
+            # current_size = self.widget_2_3.size()
+            # new_size_2 = current_size
+            # if self.widget_2_3_zoom_out:
+            #     new_size_2 = QSize(current_size.width() * 2, current_size.height() * 2)
+            #     self.widget_2_3.setGeometry(QRect(30, 300, new_size_2.width(), new_size_2.height()))
+            # else:
+            #     pass
+            # self.widget_2_3.resize(new_size_2)
+            # self.widget_2_3_zoom_out = False
             # Cache  needed
             if slice.label() in self.plot_dict:
                 hourly_work=self.plot_dict[slice.label()]
@@ -294,7 +296,8 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             #plt.show()
 
         import joblib
-
+        if not os.path.exists("./model_diagnostic"):
+            os.makedirs("./model_diagnostic")
         # 假设 model 是你训练好的 MultiOutputClassifier(XGBClassifier) 模型
         joblib.dump(model, './model_diagnostic/multioutput_RF_model.pkl')
     def xgb_classfier_predict(self,category):
@@ -356,6 +359,8 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             plt.ylim(0, 1)
             #plt.show()
         # 假设 model 是你训练好的 MultiOutputClassifier(XGBClassifier) 模型
+        if not os.path.exists("./model_diagnostic"):
+            os.makedirs("./model_diagnostic")
         joblib.dump(model, './model_diagnostic/multioutput_xgb_model.pkl')
     def split_the_dataset(self,category):
         # 读取数据文件
@@ -395,12 +400,16 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             # 打印测试集的样本
             print("X_test head:\n", X_test.head())
             print("y_test head:\n", y_test.head())
+        if not os.path.exists("./model_diagnostic"):
+            os.makedirs("./model_diagnostic")
         X_train.to_csv("./model_diagnostic/X_train.csv", index=False)
         X_test.to_csv("./model_diagnostic/X_test.csv", index=False)
         y_train.to_csv("./model_diagnostic/y_train.csv", index=False)
         y_test.to_csv("./model_diagnostic/y_test.csv", index=False)
     def pre_feature_engieering(self):
         # 读取数据文件
+        if not os.path.exists("./model_diagnostic"):
+            os.makedirs("./model_diagnostic")
         data = pd.read_pickle("./model_diagnostic/data_labeled_1.pickle")
 
         ####################处理时间类特征########################
@@ -441,6 +450,8 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
 
         df = pd.DataFrame()
         df = data[["station_name", "stake_name", "batch", "batch_num"]].drop_duplicates()
+        if not os.path.exists("./model_diagnostic"):
+            os.makedirs("./model_diagnostic")
         df.to_pickle("./model_diagnostic/data_station_stake_batch.pickle")
 
         ####################删除无用列########################
@@ -454,6 +465,8 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         data.drop(columns=columns_to_drop, inplace=True)
 
         ####################导出########################
+        if not os.path.exists("./model_diagnostic"):
+            os.makedirs("./model_diagnostic")
         data.to_pickle("./model_diagnostic/data_engineered_1.pickle")
     # 用于展示饼图（Experimental）
     def displayPieChart(self,df,chart_view,heading,order):
@@ -485,7 +498,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         chart.legend().setBackgroundVisible(True)
         chart.legend().setBorderColor(QColor(Qt.darkGreen))
         chart.legend().setMaximumWidth(400)
-        chart.legend().setBrush(QBrush(QColor(128, 255, 255, 255)))
+        #chart.legend().setBrush(QBrush(QColor(128, 255, 255, 255)))
         chart.legend().setLabelBrush(QBrush(Qt.red))
         chart.legend().setAlignment(Qt.AlignRight)
         chart.legend().setFont(QFont('Courier', 25))
@@ -497,7 +510,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         #Background color
         #RGB style(blue)
         # A dark green
-        chart.setBackgroundBrush(QBrush(QColor(0, 255, 0, 127)))
+        #chart.setBackgroundBrush(QBrush(QColor(0, 255, 0, 127)))
         #The pie must be colorful ,not blue-like
         # Legend must be aligned vertically
 
@@ -572,6 +585,8 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
 
     def display_seaborn(self,station_name):
         # 加载图表图片并显示在 QGraphicsView 中
+        if not os.path.exists("./model_diagnostic/RF_heatmap"):
+            os.makedirs("./model_diagnostic/RF_heatmap")
         self.display_image("model_diagnostic/RF_heatmap/"+station_name+"_fault_rate_heatmap.png",self.scene,self.seabornView)
     def display_image(self,filename,scene,view):
         # 加载图表图片并显示在 QGraphicsView 中
@@ -596,7 +611,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         chart.addSeries(series)
         chart.setBackgroundPen(QPen(QColor("green")))
         chart.setBackgroundVisible(True)
-        chart.setBackgroundBrush(QBrush(QColor(0, 255, 0, 127)))
+        #chart.setBackgroundBrush(QBrush(QColor(0, 255, 0, 127)))
         axisX=QDateTimeAxis()
         axisX.setFormat("dd-MM-yyyy hh:MM:ss")
         axisX.setTitleText("Datetime")
@@ -798,14 +813,21 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
                                         "\n"
                                         "")
 
-
-
+    def print_numbers(self):
+        for i in range(1, 20):
+            self.progressBar.setValue(40+i*2)
+            time.sleep(0.5)
     def addcsv(self):
+        self.progressBar.setValue(0)
         directory=QFileDialog.getExistingDirectory(self,"Select directory that contains CSV files")
         #filename, _ = QFileDialog.getOpenFileName(self, "Open CSV File", "./", "CSV Files (*.csv)")
         if directory:
             self.mdf=self.merge_data(directory)
+            # THREAD!
+            thread=threading.Thread(target=self.print_numbers())
+            thread.start()
             cdf=self.cleanse_data(self.mdf)
+            thread.join()
             counts = cdf.groupby(['station_name']).size().reset_index(name='counts')
             _translate = QtCore.QCoreApplication.translate
             order = 0
@@ -819,6 +841,13 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
                 self.comboBox_Station_II.setItemText(order, _translate("Dialog", station_name))
                 order = order+1
             self.displayCsv(cdf)
+            self.progressBar.setValue(90)
+            # save the cleaned_df.pickle
+            if not os.path.exists("./data_clean"):
+                os.makedirs("./data_clean")
+            output_path = "./data_clean/cleaned_df.pickle"
+            cdf.to_pickle(output_path)
+            self.progressBar.setValue(100)
     def cleanse_data(self,merged_df):
         # 数据偏移纠正
         merged_df["bmscurrent"] = merged_df["bmscurrent"] * (-1)
@@ -832,11 +861,21 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         merged_df.loc[:, 'fessamptime']=pd.to_datetime(merged_df['fessamptime'], unit='ms')
         merged_df = merged_df.sort_values(by=['station_name', 'stake_name', 'samptime'])
         merged_df = merged_df.reset_index(drop=True)
+        self.progressBar.setValue(90)
         return merged_df
     def merge_data(self,folder_path):
         df_list = []
+        # get the total number of csv files under the folder path dir
+        global cnt
+        cnt =0
         for filename in os.listdir(folder_path):
             if filename.endswith(".csv"):
+                cnt = cnt + 1
+        global lcnt
+        lcnt=0
+        for filename in os.listdir(folder_path):
+            if filename.endswith(".csv"):
+                lcnt = lcnt + 1
                 file_path = os.path.join(folder_path, filename)
                 # 如果你的CSV文件没有表头，你可以手动设置一个
                 header_list = [
@@ -898,6 +937,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
                     "dt"]
                 df = pd.read_csv(file_path, header=None, names=header_list,low_memory=False)
                 df_list.append(df)
+                self.progressBar.setValue(int(40*lcnt/cnt))
         merged_df = pd.concat(df_list, ignore_index=True)
         return merged_df
 
@@ -921,6 +961,8 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             X_test[col] = y_pred_test[:, i]
 
         # 读取充电站、桩和订单号码的对应关系表
+        if not os.path.exists("./model_diagnostic"):
+            os.makedirs("./model_diagnostic")
         df = pd.read_pickle("./model_diagnostic/data_station_stake_batch.pickle")
         if __debug__:
             print(df)
@@ -940,7 +982,8 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         else:
             grouped_sum = merged_df.groupby(['station_name', 'stake_name'])[
                 [category]].sum()
-
+        if not os.path.exists("./model_diagnostic/xgb_results"):
+            os.makedirs("./model_diagnostic/xgb_results")
         grouped_sum.to_excel("./model_diagnostic/xgb_results/xgb_results_fault_num.xlsx")
 
         # 计算每个桩的总样本数
@@ -981,6 +1024,8 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
                 risk_df.loc[(station, stake), fault_type] = risk_level
 
         # # 保存风险等级表
+        if not os.path.exists("./model_diagnostic/xgb_results"):
+            os.makedirs("./model_diagnostic/xgb_results")
         risk_df.to_excel("./model_diagnostic/xgb_results/xgb_results_风险等级表.xlsx")
     def draw_seaborn(self,fault_rate):
         warnings.filterwarnings('ignore')
@@ -1006,13 +1051,18 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             plt.xticks(rotation=45)
             plt.yticks(rotation=0)
             plt.tight_layout()
-
+            # If the directory doesn't exist, create it
+            if not os.path.exists("./model_diagnostic/RF_heatmap"):
+                os.makedirs("./model_diagnostic/RF_heatmap")
             # 保存热力图
             plt.savefig(f"./model_diagnostic/RF_heatmap/{station}_fault_rate_heatmap.png")
             #plt.show()
             self.display_seaborn(station)
     def test_diagnotics_model_result(self, category, model):
         # 加载测试数据集
+        # If the directory doesn't exist, create it
+        if not os.path.exists("./model_diagnostic"):
+            os.makedirs("./model_diagnostic")
         X_test = pd.read_csv("./model_diagnostic/X_test.csv")
         y_test = pd.read_csv("./model_diagnostic/y_test.csv")
 
@@ -1037,6 +1087,8 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             disp.plot(cmap=plt.cm.Blues, values_format='.0f')
             plt.title(f'Confusion Matrix for {col}')
             # If the directory doesn't exist, create it
+            if not os.path.exists("./model_diagnostic"):
+                os.makedirs("./model_diagnostic")
             if not os.path.exists("./model_diagnostic/confusion_matrices"):
                 os.makedirs("./model_diagnostic/confusion_matrices")
             plt.savefig(f"./model_diagnostic/confusion_matrices/{col}_confusion_matrix.png")
@@ -1053,10 +1105,10 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             plt.xlabel('Classes')
             plt.ylabel('Scores')
             plt.ylim(0, 1)
-            plt.savefig(f"./model_diagnostic/metrics_bars/{col}_metrics_bars.png")
             # If the directory doesn't exist, create it
             if not os.path.exists("./model_diagnostic/metrics_bars"):
                 os.makedirs("./model_diagnostic/metrics_bars")
+            plt.savefig(f"./model_diagnostic/metrics_bars/{col}_metrics_bars.png")
             self.display_image(f"./model_diagnostic/metrics_bars/{col}_metrics_bars.png",
                                view=self.MetricsView,scene=self.Metricsscene)
         self.test_model_effect(y_pred_test, X_test, category)
@@ -1151,7 +1203,9 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
                 data[category_] = data[category_].replace({None: 0})
         else:
             data[category] = data[category].replace({None: 0})
-
+        # If the directory doesn't exist, create it
+        if not os.path.exists("./model_diagnostic"):
+            os.makedirs("./model_diagnostic")
         data.to_pickle("./model_diagnostic/data_labeled_1.pickle")
         return data
     def reform_grouped_defect(self,data,category):
@@ -1173,7 +1227,9 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         # 4. 数据重塑
         # 将统计结果转换为宽格式
         wide_data = grouped.unstack()
-
+        # If the directory doesn't exist, create it
+        if not os.path.exists("./model_diagnostic"):
+            os.makedirs("./model_diagnostic")
         grouped.to_excel("./model_diagnostic/grouped_lables2.xlsx")
 
         pd.set_option('display.max_rows', 200)  # 默认是50
@@ -1192,7 +1248,9 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         # 4. 数据重塑
         # 将统计结果转换为宽格式
         wide_data = grouped.unstack(level=-1)
-
+        # If the directory doesn't exist, create it
+        if not os.path.exists("./model_diagnostic"):
+            os.makedirs("./model_diagnostic")
         grouped.to_excel("./model_diagnostic/grouped_lables.xlsx")
         return grouped
     def label_bofore_predict(self,data,category,startdate,enddate,station_name):

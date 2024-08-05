@@ -102,11 +102,18 @@ class Ui_Dialog(object):
 "")
         self.pushButton_3.setObjectName("pushButton_3")
         self.gridLayout_11.addWidget(self.pushButton_3, 0, 0, 1, 1)
+        # add a status bar
+        self.progressBar=QtWidgets.QProgressBar(self.page_1)
+        self.progressBar.setObjectName("progressBar")
+        self.progressBar.setValue(0)
+
         self.tableWidget = QtWidgets.QTableWidget(self.page_1)
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setColumnCount(0)
         self.tableWidget.setRowCount(0)
         self.gridLayout_11.addWidget(self.tableWidget, 1, 0, 1, 1)
+        ## vertically below the tablewidget
+        self.gridLayout_11.addWidget(self.progressBar, 2, 0, 1, 1)
         self.stackedWidget.addWidget(self.page_1)
         self.page_2 = QtWidgets.QWidget()
         self.page_2.setObjectName("page_2")
