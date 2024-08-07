@@ -942,7 +942,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         return merged_df
 
     def test_model_effect(self, y_pred_test, X_test, category):
-        # 假设故障列的顺序是：voltage_fault_1, voltage_fault_2, voltage_fault_3, current_fault_1, current_fault_2, temperature_fault_1, temperature_fault_2
+        # 假设故障列的顺序
         global fault_columns
         if category == 'all':
             fault_columns = [
@@ -953,7 +953,7 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         else:
             fault_columns = [category]
 
-        # 确保列数匹配
+        # 确保预测结果的列数与故障列数匹配
         assert y_pred_test.shape[1] == len(fault_columns), "预测结果的列数与故障列数不匹配。"
 
         # 添加故障列到 X_test
@@ -977,13 +977,17 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         if category == 'all':
             grouped_sum = merged_df.groupby(['station_name', 'stake_name'])[
                 ['voltage_fault_1', 'voltage_fault_2', 'voltage_fault_3',
-                    'current_fault_1', 'current_fault_2',
-                    'temperature_fault_1', 'temperature_fault_2']].sum()
+                 'current_fault_1', 'current_fault_2',
+                 'temperature_fault_1', 'temperature_fault_2']].sum()
         else:
             grouped_sum = merged_df.groupby(['station_name', 'stake_name'])[
                 [category]].sum()
+
+        # 确保保存目录存在
         if not os.path.exists("./model_diagnostic/xgb_results"):
             os.makedirs("./model_diagnostic/xgb_results")
+
+        # 保存分组统计结果
         grouped_sum.to_excel("./model_diagnostic/xgb_results/xgb_results_fault_num.xlsx")
 
         # 计算每个桩的总样本数
@@ -996,9 +1000,14 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         if __debug__:
             print('Fault Rate Table')
             print(fault_rate)
+
+        # 绘制故障率的可视化图
         self.draw_seaborn(fault_rate)
-        self.risk_assessment(fault_rate,grouped_sum,fault_columns)
-    def risk_assessment(self,fault_rate,grouped_sum,fault_columns):
+
+        # 进行风险评估
+        self.risk_assessment(fault_rate, grouped_sum, fault_columns)
+
+    def risk_assessment(self, fault_rate, grouped_sum, fault_columns):
         # 根据条件转换数字为比例
         def determine_risk_level(fault_count, fault_rate_value):
             if fault_count <= 0:
@@ -1023,10 +1032,47 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
                 risk_level = determine_risk_level(fault_count, fault_rate_value)
                 risk_df.loc[(station, stake), fault_type] = risk_level
 
-        # # 保存风险等级表
+        # 确保保存目录存在
         if not os.path.exists("./model_diagnostic/xgb_results"):
             os.makedirs("./model_diagnostic/xgb_results")
         risk_df.to_excel("./model_diagnostic/xgb_results/xgb_results_风险等级表.xlsx")
+
+        # 加载充电站基本信息
+        station_info = {
+            "name": [
+                "杭新景高速建德服务区充电站（衢州方向）",
+                "浙江省杭州市临安区岗阳充电站",
+                "浙江省杭州市富阳区行政服务中心充电站",
+                "浙江省杭州市建德市白沙充电站",
+                "浙江省杭州市拱墅区中大银泰充电站",
+                "浙江省杭州市淳安县千岛湖镇鼓山充电站",
+                "浙江省杭州市淳安县客运西站公交充电站",
+                "浙江省杭州市钱塘区大江东新湾小学充电站"
+            ],
+            "description": ["充电站"] * 8,
+            "latitude": [29.4011, 30.2344, 30.0492, 29.4741, 30.3180, 29.6035, 29.6070, 30.2824],
+            "longitude": [119.5255, 119.7256, 119.9605, 119.2769, 120.1631, 118.9615, 119.0203, 120.3562],
+            "rating": [10] * 8  # 初始化为最高评分
+        }
+
+        station_info_df = pd.DataFrame(station_info)
+
+        # 合并描述信息和计算评分
+        for i, row in station_info_df.iterrows():
+            station_name = row['name']
+            if station_name in risk_df.index.get_level_values('station_name'):
+                station_risks = risk_df.loc[station_name].apply(
+                    lambda x: ', '.join([stake for stake, level in x.items() if level == '高风险']), axis=1)
+                high_risk_stakes = station_risks[station_risks != ''].to_dict()
+                description_text = f"充电站: {high_risk_stakes}" if high_risk_stakes else "充电站: 无高风险桩"
+                station_info_df.at[i, 'description'] = description_text
+                station_info_df.at[i, 'rating'] = 0 if high_risk_stakes else 10
+
+        # 保存新的CSV文件
+        csv_file_path = "./model_diagnostic/xgb_results/charging_stations_with_risk.csv"
+        station_info_df.to_csv(csv_file_path, index=False, encoding='utf-8-sig')
+        print(f"CSV file saved at {csv_file_path}")
+
     def draw_seaborn(self,fault_rate):
         warnings.filterwarnings('ignore')
 
@@ -1058,9 +1104,9 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             plt.savefig(f"./model_diagnostic/RF_heatmap/{station}_fault_rate_heatmap.png")
             #plt.show()
             self.display_seaborn(station)
+
     def test_diagnotics_model_result(self, category, model):
         # 加载测试数据集
-        # If the directory doesn't exist, create it
         if not os.path.exists("./model_diagnostic"):
             os.makedirs("./model_diagnostic")
         X_test = pd.read_csv("./model_diagnostic/X_test.csv")
@@ -1086,14 +1132,14 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             disp = ConfusionMatrixDisplay(confusion_matrix=cm)
             disp.plot(cmap=plt.cm.Blues, values_format='.0f')
             plt.title(f'Confusion Matrix for {col}')
-            # If the directory doesn't exist, create it
             if not os.path.exists("./model_diagnostic"):
                 os.makedirs("./model_diagnostic")
             if not os.path.exists("./model_diagnostic/confusion_matrices"):
                 os.makedirs("./model_diagnostic/confusion_matrices")
             plt.savefig(f"./model_diagnostic/confusion_matrices/{col}_confusion_matrix.png")
-            self.display_image(f"./model_diagnostic/confusion_matrices/{col}_confusion_matrix.png"
-                               ,view=self.confusionMatrixView,scene=self.confusionMatrixscene)
+            self.display_image(f"./model_diagnostic/confusion_matrices/{col}_confusion_matrix.png",
+                               view=self.confusionMatrixView, scene=self.confusionMatrixscene)
+
             # 绘制精确率、召回率和F1得分的条形图
             report_dict = classification_report(y_test[col], y_pred_test[:, i], output_dict=True)
             metrics_df = pd.DataFrame(report_dict).transpose()
@@ -1105,13 +1151,14 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
             plt.xlabel('Classes')
             plt.ylabel('Scores')
             plt.ylim(0, 1)
-            # If the directory doesn't exist, create it
             if not os.path.exists("./model_diagnostic/metrics_bars"):
                 os.makedirs("./model_diagnostic/metrics_bars")
             plt.savefig(f"./model_diagnostic/metrics_bars/{col}_metrics_bars.png")
-            self.display_image(f"./model_diagnostic/metrics_bars/{col}_metrics_bars.png",
-                               view=self.MetricsView,scene=self.Metricsscene)
+            self.display_image(f"./model_diagnostic/metrics_bars/{col}_metrics_bars.png", view=self.MetricsView,
+                               scene=self.Metricsscene)
+
         self.test_model_effect(y_pred_test, X_test, category)
+
     def packageData(self):
         # 读取控件内容并封装成字典
         data = {
@@ -1667,17 +1714,17 @@ class MainWidget(QtWidgets.QWidget, Ui_Dialog):
         for i, row in station_info_df.iterrows():
             station_name = row['name']
             if station_name in risk_df.index.get_level_values('station_name'):
-                station_risks = risk_df.loc[station_name].apply(lambda x: ', '.join(x.dropna().unique()), axis=1)
-                description_text = f"充电站: {station_risks.to_dict()}"
+                station_risks = risk_df.loc[station_name].apply(
+                    lambda x: ', '.join([stake for stake, level in x.items() if level == '高风险']), axis=1)
+                high_risk_stakes = station_risks[station_risks != ''].to_dict()
+                description_text = f"充电站: {high_risk_stakes}" if high_risk_stakes else "充电站: 无高风险桩"
                 station_info_df.at[i, 'description'] = description_text
-                station_ratings = [risk_ratings[(station_name, stake)] for stake in risk_df.loc[station_name].index]
-                station_info_df.at[i, 'rating'] = min(station_ratings)
+                station_info_df.at[i, 'rating'] = 0 if high_risk_stakes else 10
 
         # 保存新的CSV文件
         csv_file_path = f"{results_folder}/{model_type}_charging_stations_with_risk.csv"
         station_info_df.to_csv(csv_file_path, index=False, encoding='utf-8-sig')
         print(f"CSV file saved at {csv_file_path}")
-
     def train_and_evaluate_model_lgbm(self,X_train_path, y_train_path, output_model_path,category):
         # 读取训练数据集
         X_data = pd.read_csv(X_train_path)
